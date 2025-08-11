@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "288156635886",
+    "project_id": "anket-e3aed",
+    "storage_bucket": "anket-e3aed.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:288156635886:android:5dcda604128a43901059ff",
+        "android_client_info": {
+          "package_name": "com.example.anket"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcnfFYcRJJja83-FC0k8CHpH6OUB4w6iA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
