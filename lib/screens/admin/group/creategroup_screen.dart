@@ -130,7 +130,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 controller: _groupNameController,
-                placeholder: "Grup Adı",
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
