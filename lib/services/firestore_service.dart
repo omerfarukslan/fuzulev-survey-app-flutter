@@ -22,12 +22,19 @@ class FirestoreService {
     String userId,
     Map<String, dynamic> answers,
   ) async {
-    await _db.collection('responses').add({
+    final batch = _db.batch();
+    final responseRef = _db.collection('responses').doc();
+    batch.set(responseRef, {
       'surveyId': surveyId,
       'userId': userId,
       'createdAt': FieldValue.serverTimestamp(),
       'answers': answers,
     });
+
+    final surveyRef = _db.collection('surveys').doc(surveyId);
+    batch.update(surveyRef, {'answeredCount': FieldValue.increment(1)});
+
+    await batch.commit();
   }
 
   Stream<QuerySnapshot> responsesForSurvey(String surveyId) {
@@ -37,8 +44,6 @@ class FirestoreService {
         .snapshots();
   }
 
-  //getAnswersCountGroupedByQuestion
-  /// Soru bazında cevap sayısını döndürür
   Future<Map<int, Map<String, int>>> getAnswersCountGroupedByQuestionFlexible(
     String surveyId,
   ) async {
@@ -64,17 +69,31 @@ class FirestoreService {
           result[questionIndex - 1] = {};
         }
 
-        // Eğer çoktan seçmeli ise liste gelir
+        // Çoktan seçmeli (liste)
         if (value is List) {
           for (var v in value) {
             final ans = v.toString();
             result[questionIndex - 1]![ans] =
                 (result[questionIndex - 1]![ans] ?? 0) + 1;
           }
-        } else {
-          final ans = (value ?? '').toString();
-          result[questionIndex - 1]![ans] =
-              (result[questionIndex - 1]![ans] ?? 0) + 1;
+        }
+        // Çoktan seçmeli (map: { "A": true, "B": false })
+        else if (value is Map) {
+          value.forEach((option, selected) {
+            if (selected == true) {
+              final ans = option.toString();
+              result[questionIndex - 1]![ans] =
+                  (result[questionIndex - 1]![ans] ?? 0) + 1;
+            }
+          });
+        }
+        // Açık uçlu veya tek değer
+        else {
+          final ans = (value ?? '').toString().trim();
+          if (ans.isNotEmpty) {
+            result[questionIndex - 1]![ans] =
+                (result[questionIndex - 1]![ans] ?? 0) + 1;
+          }
         }
       });
     }

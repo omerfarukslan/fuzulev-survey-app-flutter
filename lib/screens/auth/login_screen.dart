@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../utils/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,116 +12,188 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final Color mainColor = const Color(0xFF123F8C);
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
-  bool _loading = false;
+  bool _loadingLogin = false;
   bool _obscurePass = true;
+  final _loginFormKey = GlobalKey<FormState>();
 
-  void _login() async {
-    setState(() => _loading = true);
+  Future<void> _login() async {
+    if (!_loginFormKey.currentState!.validate()) return;
+
+    setState(() => _loadingLogin = true);
     try {
       await Provider.of<AuthService>(
         context,
         listen: false,
       ).signInWithEmail(_emailCtrl.text.trim(), _passCtrl.text);
+
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Giriş başarısız: $e'),
-          backgroundColor: Colors.redAccent,
-        ),
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: const Text("Hata"),
+              content: Text("Giriş başarısız: $e"),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text("Tamam"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
       );
     } finally {
-      setState(() => _loading = false);
+      setState(() => _loadingLogin = false);
     }
+  }
+
+  bool _isValidEmail(String val) {
+    return val.contains('@') && val.contains('.');
+  }
+
+  bool _isValidPassword(String val) {
+    return val.length >= 6;
+  }
+
+  Widget buildInputField({
+    required TextEditingController controller,
+    required String label,
+    bool obscureText = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 6, left: 8, bottom: 6),
+          child: Text(
+            label,
+            style: const TextStyle(color: AppColors.secondaryTextColor),
+          ),
+        ),
+        StatefulBuilder(
+          builder: (context, setStateField) {
+            return CupertinoTextField(
+              controller: controller,
+              obscureText: obscureText && _obscurePass,
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              prefix:
+                  obscureText
+                      ? const Padding(padding: EdgeInsets.only(left: 8))
+                      : null,
+              suffix: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (obscureText)
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      minSize: 0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(
+                          _obscurePass
+                              ? CupertinoIcons.eye_slash
+                              : CupertinoIcons.eye,
+                          color: mainColor,
+                        ),
+                      ),
+                      onPressed:
+                          () => setState(() => _obscurePass = !_obscurePass),
+                    ),
+                  if ((label == "Email" && _isValidEmail(controller.text)) ||
+                      (label == "Şifre" && _isValidPassword(controller.text)))
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: Icon(
+                        CupertinoIcons.check_mark_circled_solid,
+                        color: CupertinoColors.activeGreen,
+                      ),
+                    ),
+                ],
+              ),
+              onChanged: (_) => setStateField(() {}),
+            );
+          },
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.blue[50], // Arka plan rengi
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FlutterLogo(size: 88, style: FlutterLogoStyle.markOnly),
-              const SizedBox(height: 24),
-              TextField(
-                controller: _emailCtrl,
-                decoration: InputDecoration(
-                  labelText: 'E-posta',
-                  prefixIcon: const Icon(Icons.email),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text('Giriş Yap'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(
+            CupertinoIcons.back,
+            color: AppColors.primarySupColor,
+            size: 28,
+          ),
+          onPressed:
+              () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/firstPage',
+                (Route<dynamic> route) => false,
+              ),
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Form(
+            key: _loginFormKey,
+            child: Column(
+              children: [
+                SvgPicture.asset('assets/svgs/fuzulev.svg', height: 70),
+                const SizedBox(height: 24),
+                buildInputField(controller: _emailCtrl, label: "Email"),
+                const SizedBox(height: 12),
+                buildInputField(
+                  controller: _passCtrl,
+                  label: "Şifre",
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: CupertinoButton.filled(
+                    onPressed: _loadingLogin ? null : _login,
                     borderRadius: BorderRadius.circular(12),
+                    child:
+                        _loadingLogin
+                            ? const CupertinoActivityIndicator(
+                              color: CupertinoColors.white,
+                            )
+                            : const Text("Giriş Yap"),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passCtrl,
-                obscureText: _obscurePass,
-                decoration: InputDecoration(
-                  labelText: 'Şifre',
-                  prefixIcon: const Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePass ? Icons.visibility_off : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePass = !_obscurePass;
-                      });
-                    },
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 12),
+                CupertinoButton(
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Hesabınız yok mu? ",
+                        style: TextStyle(color: AppColors.onSurfaceColor),
+                      ),
+                      const Text(
+                        'Kayıt Olun',
+                        style: TextStyle(color: AppColors.primaryColor),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child:
-                      _loading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                            'Giriş',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                child: Text(
-                  "Hesabınız yok mu? Kayıt ol",
-                  style: TextStyle(
-                    color: Colors.blue[800],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onTap: () => Navigator.pushNamed(context, '/register'),
-              ),
-              const SizedBox(height: 150),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -1,9 +1,11 @@
-import 'package:anket/screens/admin/addsurvey_screen.dart';
-import 'package:anket/screens/admin/resultslist_screen.dart';
-import 'package:anket/screens/survey/survey_list_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:anket/screens/admin/survey/addsurvey_screen.dart';
+import 'package:anket/screens/admin/survey/survey_results_screen.dart';
+import 'package:anket/screens/my_account_screen.dart';
+import 'package:anket/screens/survey/surveys_list.dart';
+import 'package:anket/utils/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,98 +16,113 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isAdmin = false;
-  String userName = '';
   String? uid;
 
   @override
   void initState() {
     super.initState();
-    checkAdmin();
-  }
-
-  Future<void> checkAdmin() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    uid = user.uid;
-
-    final doc =
-        await FirebaseFirestore.instance.collection('users').doc(uid).get();
-    if (!mounted) return;
-
-    final data = doc.data();
-    setState(() {
-      isAdmin = (data?['isAdmin'] ?? false) == true;
-      userName = data?['name'] ?? '';
-    });
+    uid = FirebaseAuth.instance.currentUser?.uid;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Anketlerim'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            UserAccountsDrawerHeader(
-              accountName: Text(userName.isNotEmpty ? userName : 'Kullanıcı'),
-              accountEmail: Text(
-                FirebaseAuth.instance.currentUser?.email ?? '',
-              ),
-              currentAccountPicture: CircleAvatar(
-                child: Text(
-                  userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
-                  style: const TextStyle(fontSize: 40),
-                ),
-              ),
+    return CupertinoPageScaffold(
+      child: CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+          backgroundColor: CupertinoColors.white,
+          activeColor: AppColors.primaryColor,
+          inactiveColor: CupertinoColors.systemGrey,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.house_alt_fill),
+              label: 'Anasayfa',
             ),
-            ListTile(
-              title: const Text('Profilim'),
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.add),
+              label: 'Anket Oluştur',
             ),
-            if (isAdmin)
-              ListTile(
-                title: const Text('Kullanıcı Listesi'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/users');
-                },
-              ),
-            if (isAdmin)
-              ListTile(
-                title: const Text('Anket Grup Listesi'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/groupList');
-                },
-              ),
-            if (isAdmin)
-              ListTile(
-                title: const Text('Anket Oluştur'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/surveyAdd');
-                },
-              ),
-            if (isAdmin)
-              ListTile(
-                title: const Text('Anket Sonuçları'),
-                onTap: () {
-                  Navigator.pushNamed(context, '/resultList');
-                },
-              ),
-            ListTile(
-              title: const Text('Çıkış'),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.pushReplacementNamed(context, '/login');
-              },
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.graph_circle_fill),
+              label: 'Sonuçlar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.person_fill),
+              label: 'Hesabım',
             ),
           ],
         ),
+        tabBuilder: (context, index) {
+          return Stack(
+            children: [
+              SvgPicture.asset(
+                'assets/svgs/topbar.svg',
+                width: MediaQuery.of(context).size.width,
+              ),
+
+              Positioned(
+                top: 60,
+                left: 150,
+                child: Text(
+                  'FUZULEV',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primarySupColor,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.only(top: 150),
+                child: IndexedStack(
+                  index: index,
+                  children: [
+                    const SurveysList(),
+                    const AddSurveyScreen(),
+                    SurveyResultsScreen(),
+                    MyAccountScreen(),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 120,
+                left: MediaQuery.of(context).size.width / 2 - 175,
+                child: Container(
+                  height: 60,
+                  width: 350,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: CupertinoColors.systemGrey.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                    color: CupertinoColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      index == 0
+                          ? "Anketlerim"
+                          : index == 1
+                          ? "Anket Oluştur"
+                          : index == 2
+                          ? "Anket Sonuçları"
+                          : "Profil",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.primarySupColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
-      body: const SurveyListScreen(),
     );
   }
 }

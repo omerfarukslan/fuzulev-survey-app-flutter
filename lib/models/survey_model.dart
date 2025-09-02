@@ -12,21 +12,30 @@ class Survey {
   final String id;
   final String createdBy;
   final String title;
+  final String? description;
   final List<Question> questions;
   final Timestamp? createdAt;
   final List<String> allowedGroups;
   final List<String> allowedUsers;
-  final bool isVisible; // Yeni alan
+  final List<String> allowedDepartments;
+  final bool isVisible;
+
+  final int answeredCount; // yeni eklendi
+  final int targetCount; // yeni eklendi
 
   Survey({
     required this.id,
     required this.createdBy,
     required this.title,
+    this.description,
     required this.questions,
     this.createdAt,
     this.allowedGroups = const [],
     this.allowedUsers = const [],
-    this.isVisible = true, // varsayılan görünür
+    this.allowedDepartments = const [],
+    this.isVisible = true,
+    this.answeredCount = 0, // varsayılan değer
+    this.targetCount = 0, // varsayılan değer
   });
 
   factory Survey.fromDoc(DocumentSnapshot doc) {
@@ -45,11 +54,18 @@ class Survey {
       id: doc.id,
       createdBy: data['createdBy'] ?? '',
       title: data['title'] ?? 'Adsız Anket',
+      description: data['description'],
       questions: questions,
-      createdAt: data['createdAt'] as Timestamp?,
+      createdAt:
+          data['createdAt'] is Timestamp
+              ? data['createdAt'] as Timestamp
+              : null,
       allowedGroups: List<String>.from(data['visibleToGroups'] ?? []),
       allowedUsers: List<String>.from(data['visibleToUsers'] ?? []),
-      isVisible: data['isVisible'] ?? true, // firestore’dan oku
+      allowedDepartments: List<String>.from(data['visibleToDepartments'] ?? []),
+      isVisible: data['isVisible'] ?? true,
+      answeredCount: data['answeredCount'] ?? 0, // firestore'dan al
+      targetCount: data['targetCount'] ?? 0, // firestore'dan al
     );
   }
 
@@ -57,34 +73,45 @@ class Survey {
     return {
       'createdBy': createdBy,
       'title': title,
+      'description': description,
       'questions': questions.map((q) => q.toMap()).toList(),
       'createdAt': createdAt ?? FieldValue.serverTimestamp(),
       'visibleToGroups': allowedGroups,
       'visibleToUsers': allowedUsers,
-      'isVisible': isVisible, // firestore’a kaydet
+      'visibleToDepartments': allowedDepartments,
+      'isVisible': isVisible,
+      'answeredCount': answeredCount,
+      'targetCount': targetCount,
     };
   }
 
-  // copyWith metodu ile sadece belirli alanları değiştirebilirsin
   Survey copyWith({
     String? id,
     String? createdBy,
     String? title,
+    String? description,
     List<Question>? questions,
     Timestamp? createdAt,
     List<String>? allowedGroups,
     List<String>? allowedUsers,
+    List<String>? allowedDepartments,
     bool? isVisible,
+    int? answeredCount,
+    int? targetCount,
   }) {
     return Survey(
       id: id ?? this.id,
       createdBy: createdBy ?? this.createdBy,
       title: title ?? this.title,
+      description: description ?? this.description,
       questions: questions ?? this.questions,
       createdAt: createdAt ?? this.createdAt,
       allowedGroups: allowedGroups ?? this.allowedGroups,
       allowedUsers: allowedUsers ?? this.allowedUsers,
+      allowedDepartments: allowedDepartments ?? this.allowedDepartments,
       isVisible: isVisible ?? this.isVisible,
+      answeredCount: answeredCount ?? this.answeredCount,
+      targetCount: targetCount ?? this.targetCount,
     );
   }
 }
