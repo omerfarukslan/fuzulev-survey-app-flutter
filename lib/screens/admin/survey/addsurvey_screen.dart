@@ -44,12 +44,12 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
         context: context,
         builder:
             (_) => CupertinoAlertDialog(
-              title: Text("Uyarı"),
-              content: Text("Lütfen anket başlığını girin."),
+              title: const Text("Uyarı"),
+              content: const Text("Lütfen anket başlığını girin."),
               actions: [
                 CupertinoDialogAction(
                   child: CupertinoButton(
-                    child: Text('Tamam'),
+                    child: const Text('Tamam'),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -59,6 +59,55 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
             ),
       );
       return;
+    }
+
+    for (int i = 0; i < questions.length; i++) {
+      final qData = questions[i];
+      if (qData.textController.text.trim().isEmpty) {
+        showCupertinoDialog(
+          context: context,
+          builder:
+              (_) => CupertinoAlertDialog(
+                title: const Text("Uyarı"),
+                content: Text("Lütfen Soru ${i + 1}'in metnini girin."),
+                actions: [
+                  CupertinoDialogAction(
+                    child: CupertinoButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Tamam"),
+                    ),
+                  ),
+                ],
+              ),
+        );
+        return;
+      }
+
+      if (qData.type == 'multiple_choice') {
+        for (int j = 0; j < qData.options.length; j++) {
+          if (qData.options[j].text.trim().isEmpty) {
+            showCupertinoDialog(
+              context: context,
+              builder:
+                  (_) => CupertinoAlertDialog(
+                    title: const Text("Uyarı"),
+                    content: Text(
+                      "Lütfen Soru ${i + 1}'in ${j + 1}. seçeneğini doldurun.",
+                    ),
+                    actions: [
+                      CupertinoDialogAction(
+                        child: CupertinoButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Tamam"),
+                        ),
+                      ),
+                    ],
+                  ),
+            );
+            return;
+          }
+        }
+      }
     }
 
     if (questions.isEmpty) {
