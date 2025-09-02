@@ -34,8 +34,8 @@ class Survey {
     this.allowedUsers = const [],
     this.allowedDepartments = const [],
     this.isVisible = true,
-    this.answeredCount = 0, // varsayılan değer
-    this.targetCount = 0, // varsayılan değer
+    this.answeredCount = 0,
+    this.targetCount = 0,
   });
 
   factory Survey.fromDoc(DocumentSnapshot doc) {

@@ -1,4 +1,5 @@
 import 'package:anket/utils/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -125,12 +126,45 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
       final fs = Provider.of<FirestoreService>(context, listen: false);
       final userId = currentUser?.uid ?? "idsiz";
 
+      // Cevapları map'e ekle
       final answersMap = <String, dynamic>{};
       _answers.forEach((key, value) {
         answersMap['q${key + 1}'] = value;
       });
 
+      // Yanıtları kaydet
       await fs.submitResponse(widget.surveyId, userId, answersMap);
+
+      // Kullanıcı adını Firestore'dan al
+      String userName = "Bilinmeyen Kullanıcı";
+      final userDoc =
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(userId)
+              .get();
+      if (userDoc.exists) {
+        userName = userDoc['name'] ?? "Bilinmeyen Kullanıcı";
+      }
+
+      // Anket başlığını Firestore'dan al
+      String surveyTitle = "Anket";
+      final surveyDoc =
+          await FirebaseFirestore.instance
+              .collection("surveys")
+              .doc(widget.surveyId)
+              .get();
+      if (surveyDoc.exists) {
+        surveyTitle = surveyDoc['title'] ?? "Anket";
+      }
+
+      // Bildirimi kaydet
+      await FirebaseFirestore.instance.collection("notifications").add({
+        "surveyId": widget.surveyId,
+        "userId": userId,
+        "message":
+            "$userName adlı kullanıcı '$surveyTitle' adlı anketi cevapladı",
+        "timestamp": FieldValue.serverTimestamp(),
+      });
 
       if (!mounted) return;
       _saveEffect();

@@ -3,6 +3,7 @@ import 'package:anket/screens/admin/survey/survey_results_screen.dart';
 import 'package:anket/screens/my_account_screen.dart';
 import 'package:anket/screens/survey/surveys_list.dart';
 import 'package:anket/utils/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -122,15 +123,44 @@ class _HomeScreenState extends State<HomeScreen> {
               Positioned(
                 top: 43,
                 right: 12,
-                child: CupertinoButton(
-                  child: Icon(
-                    CupertinoIcons.bell,
-                    color: AppColors.primarySupColor,
-                    size: 28,
-                  ),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/notifications');
-                  },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CupertinoButton(
+                      child: Icon(
+                        CupertinoIcons.bell,
+                        color: AppColors.primarySupColor,
+                        size: 28,
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/notifications');
+                      },
+                    ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream:
+                          FirebaseFirestore.instance
+                              .collection("notifications")
+                              .where("seen", isEqualTo: false)
+                              .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemRed,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
