@@ -1,3 +1,4 @@
+import 'package:anket/screens/admin/survey/respondents_list_screen.dart';
 import 'package:anket/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -94,7 +95,13 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _statCard("Yanıtlar", collected, totalTarget, responseRate),
+                    _statCard(
+                      "Yanıtlar",
+                      collected,
+                      totalTarget,
+                      responseRate,
+                      selectedSurvey: selectedSurvey,
+                    ),
                     const SizedBox(width: 4),
                     _statCard(
                       "Katılım Oranı",
@@ -301,71 +308,85 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
     String title,
     int collected,
     int totalTarget,
-    double responseRate,
-  ) {
+    double responseRate, {
+    Survey? selectedSurvey,
+  }) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(22),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          border: Border.all(color: CupertinoColors.systemGrey2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  title == "Katılım Oranı"
-                      ? CupertinoIcons.graph_square_fill
-                      : CupertinoIcons.person_2_fill,
-                  color: AppColors.primaryColor,
-                ),
-                const SizedBox(width: 12),
-                Text(title),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text(
-              title == "Katılım Oranı"
-                  ? "% ${(responseRate * 100).toStringAsFixed(0)}"
-                  : '$collected',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: AppColors.onSurfaceColor,
+      child: GestureDetector(
+        onTap: () {
+          if (title == "Yanıtlar" && selectedSurvey != null) {
+            Navigator.pushNamed(
+              context,
+              '/respondentsList',
+              arguments: {'survey': selectedSurvey},
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(22),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: CupertinoColors.systemGrey2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    title == "Katılım Oranı"
+                        ? CupertinoIcons.graph_square_fill
+                        : CupertinoIcons.person_2_fill,
+                    color: AppColors.primaryColor,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(title),
+                ],
               ),
-            ),
-            const SizedBox(height: 4),
-            if (title == "Yanıtlar")
+              const SizedBox(height: 18),
               Text(
-                "$totalTarget kişiden",
+                title == "Katılım Oranı"
+                    ? "% ${(responseRate * 100).toStringAsFixed(0)}"
+                    : '$collected',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
+                  color: AppColors.onSurfaceColor,
                 ),
               ),
-            if (title == "Katılım Oranı")
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color:
-                      (responseRate * 100) >= 50
-                          ? CupertinoColors.activeGreen
-                          : CupertinoColors.destructiveRed,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  (responseRate * 100) >= 50 ? "Katılım İyi" : "Katılım Düşük",
+              const SizedBox(height: 4),
+              if (title == "Yanıtlar")
+                Text(
+                  "$totalTarget kişiden",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 10,
-                    color: CupertinoColors.white,
+                    fontSize: 16,
                   ),
                 ),
-              ),
-          ],
+              if (title == "Katılım Oranı")
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color:
+                        (responseRate * 100) >= 50
+                            ? CupertinoColors.activeGreen
+                            : CupertinoColors.destructiveRed,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    (responseRate * 100) >= 50
+                        ? "Katılım İyi"
+                        : "Katılım Düşük",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                      color: CupertinoColors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
