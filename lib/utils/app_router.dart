@@ -14,6 +14,7 @@ import 'package:anket/screens/admin/unanswers_list_screen.dart';
 import 'package:anket/screens/auth/first_page.dart';
 import 'package:anket/screens/auth/register_screen.dart';
 import 'package:anket/screens/auth/signup_successful.dart';
+import 'package:anket/screens/notifications_Screen.dart';
 import 'package:flutter/cupertino.dart';
 import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
@@ -43,6 +44,9 @@ class AppRouter {
         break;
       case '/home':
         page = const HomeScreen();
+        break;
+      case '/notifications':
+        page = const NotificationsScreen();
         break;
       case '/surveys':
         page = const SurveysList();
