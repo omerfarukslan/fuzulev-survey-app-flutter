@@ -1,4 +1,3 @@
-import 'package:anket/screens/admin/survey/respondents_list_screen.dart';
 import 'package:anket/utils/app_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -39,9 +38,19 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
             if (surveys.isEmpty) {
               return const Center(child: Text("Henüz anket yok."));
             }
-
-            selectedSurvey ??= surveys.first;
-
+            if (selectedSurvey == null) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: buildSurveySelectionSection(context, surveys),
+                  ),
+                  Expanded(
+                    child: Center(child: Text("Lütfen bir anket seçiniz.")),
+                  ),
+                ],
+              );
+            }
             final totalTarget = selectedSurvey!.targetCount;
             final collected = selectedSurvey!.answeredCount;
             final responseRate =
@@ -50,58 +59,13 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Anket seçme
-                CupertinoButton(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        selectedSurvey!.title,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                      const Icon(CupertinoIcons.chevron_down),
-                    ],
-                  ),
-                  onPressed: () {
-                    showCupertinoModalPopup(
-                      context: context,
-                      builder:
-                          (_) => CupertinoActionSheet(
-                            title: const Text("Anket Seç"),
-                            actions:
-                                surveys
-                                    .map(
-                                      (s) => CupertinoActionSheetAction(
-                                        child: Text(s.title),
-                                        onPressed: () {
-                                          setState(() => selectedSurvey = s);
-                                          Navigator.pop(context);
-                                        },
-                                      ),
-                                    )
-                                    .toList(),
-                          ),
-                    );
-                  },
-                ),
+                buildSurveySelectionSection(context, surveys),
                 const SizedBox(height: 16),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _statCard(
-                      "Yanıtlar",
-                      collected,
-                      totalTarget,
-                      responseRate,
-                      selectedSurvey: selectedSurvey,
-                    ),
+                    _statCard("Yanıtlar", collected, totalTarget, responseRate),
                     const SizedBox(width: 4),
                     _statCard(
                       "Katılım Oranı",
@@ -167,7 +131,6 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Soru başlığı
                         Row(
                           children: [
                             Container(
@@ -304,13 +267,54 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
     );
   }
 
+  CupertinoButton buildSurveySelectionSection(
+    BuildContext context,
+    List<Survey> surveys,
+  ) {
+    return CupertinoButton(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: CupertinoColors.systemGrey6,
+      borderRadius: BorderRadius.circular(8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            selectedSurvey?.title ?? "Anket Seç",
+            style: const TextStyle(color: Colors.black),
+          ),
+          const Icon(CupertinoIcons.chevron_down),
+        ],
+      ),
+      onPressed: () {
+        showCupertinoModalPopup(
+          context: context,
+          builder:
+              (_) => CupertinoActionSheet(
+                title: const Text("Anket Seç"),
+                actions:
+                    surveys
+                        .map(
+                          (s) => CupertinoActionSheetAction(
+                            child: Text(s.title),
+                            onPressed: () {
+                              setState(() => selectedSurvey = s);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        )
+                        .toList(),
+              ),
+        );
+      },
+    );
+  }
+
   Widget _statCard(
     String title,
     int collected,
     int totalTarget,
-    double responseRate, {
-    Survey? selectedSurvey,
-  }) {
+    double responseRate,
+  ) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -568,7 +572,6 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
       }
     }
 
-    // Kullanıcı isimlerini yükle
     final selectedUserNames = <String>[];
     for (var userId in selectedUserIds) {
       final userDoc =
