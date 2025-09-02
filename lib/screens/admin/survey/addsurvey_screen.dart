@@ -45,7 +45,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
         builder:
             (_) => CupertinoAlertDialog(
               title: Text("Uyarı"),
-              content: Text("Lütfen anket baŞlığını girin."),
+              content: Text("Lütfen anket başlığını girin."),
               actions: [
                 CupertinoDialogAction(
                   child: CupertinoButton(
