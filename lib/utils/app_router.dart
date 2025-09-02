@@ -3,6 +3,7 @@ import 'package:anket/screens/accountEdits/password_change_screen.dart';
 import 'package:anket/screens/accountEdits/user_info_change_screen.dart';
 import 'package:anket/screens/admin/department_management_screen.dart';
 import 'package:anket/screens/admin/survey/addsurvey_screen.dart';
+import 'package:anket/screens/admin/survey/respondents_list_screen.dart';
 import 'package:anket/screens/admin/survey/survey_edit_screen.dart';
 import 'package:anket/screens/admin/group/creategroup_screen.dart';
 import 'package:anket/screens/admin/group/group_detail.dart';
@@ -10,6 +11,7 @@ import 'package:anket/screens/admin/group/groupedit_screen.dart';
 import 'package:anket/screens/admin/group/grouplist_screen.dart';
 import 'package:anket/screens/admin/survey/survey_results_screen.dart';
 import 'package:anket/screens/admin/survey/target_audience_selection_screen.dart';
+import 'package:anket/screens/admin/survey/user_responses_screen.dart';
 import 'package:anket/screens/admin/unanswers_list_screen.dart';
 import 'package:anket/screens/auth/first_page.dart';
 import 'package:anket/screens/auth/register_screen.dart';
@@ -67,6 +69,18 @@ class AppRouter {
         break;
       case '/resultsScreen':
         page = SurveyResultsScreen();
+        break;
+      case '/respondentsList':
+        final args = settings.arguments as Map<String, dynamic>?;
+        page = RespondentsListScreen(survey: args?['survey'] ?? '');
+        break;
+      case '/userResponses':
+        final args = settings.arguments as Map<String, dynamic>?;
+        page = UserResponsesScreen(
+          survey: args?['survey'] ?? '',
+          responseData: args?['responseData'] ?? '',
+          userName: args?['userName'] ?? '',
+        );
         break;
       case '/groupList':
         final args = settings.arguments as Map<String, dynamic>?;

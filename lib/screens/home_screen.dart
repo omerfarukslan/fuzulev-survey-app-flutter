@@ -121,7 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Positioned(
                 top: 43,
-                left: 12,
+                right: 12,
                 child: CupertinoButton(
                   child: Icon(
                     CupertinoIcons.bell,
