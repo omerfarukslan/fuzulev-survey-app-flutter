@@ -119,6 +119,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
+              Positioned(
+                top: 43,
+                left: 12,
+                child: CupertinoButton(
+                  child: Icon(
+                    CupertinoIcons.bell,
+                    color: AppColors.primarySupColor,
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/notifications');
+                  },
+                ),
+              ),
             ],
           );
         },
