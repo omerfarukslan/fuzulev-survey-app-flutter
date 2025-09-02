@@ -108,22 +108,59 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+
             children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Grup Adı',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
               CupertinoTextField(
+                style: TextStyle(color: AppColors.onSurfaceColor),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 controller: _groupNameController,
                 placeholder: "Grup Adı",
-                padding: const EdgeInsets.all(12),
               ),
-              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Kullanıcı Ara',
+                  style: TextStyle(
+                    color: AppColors.primaryColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
               CupertinoTextField(
+                style: TextStyle(color: AppColors.onSurfaceColor),
                 controller: _searchController,
-                placeholder: "Kullanıcı Ara",
-                prefix: const Padding(
-                  padding: EdgeInsets.only(left: 8),
+                placeholder: "Ara...",
+                suffix: const Padding(
+                  padding: EdgeInsets.only(right: 12),
                   child: Icon(
                     CupertinoIcons.search,
-                    color: CupertinoColors.systemGrey,
+                    color: AppColors.primarySupColor,
                   ),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: CupertinoColors.systemGrey6,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 onChanged: (value) {
                   setState(() {
