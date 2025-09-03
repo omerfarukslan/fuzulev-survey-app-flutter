@@ -222,7 +222,7 @@ class _SurveysListState extends State<SurveysList> {
                               fontSize: 14,
                               color: AppColors.secondaryTextColor,
                             ),
-                            maxLines: null,
+                            maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),

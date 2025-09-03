@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -183,6 +184,40 @@ class _AudienceScreenState extends State<AudienceScreen> {
         'targetCount': targetUserIds.length,
         'answeredCount': 0,
         'isVisible': true,
+      });
+
+      final surveyRef = await FirebaseFirestore.instance
+          .collection('surveys')
+          .add({
+            'title': widget.surveyTitle,
+            'description': widget.surveyDescription,
+            'questions': widget.questions,
+            'visibleToGroups': selectedGroups,
+            'visibleToUsers': selectedUsers,
+            'visibleToDepartments': selectedDepartments,
+            'createdAt': FieldValue.serverTimestamp(),
+            'targetCount': targetUserIds.length,
+            'answeredCount': 0,
+            'isVisible': true,
+          });
+
+      final adminsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .where('isAdmin', isEqualTo: true)
+              .get();
+
+      final adminIds = adminsSnapshot.docs.map((d) => d.id).toList();
+
+      final receivers = {...adminIds, ...targetUserIds}.toList();
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'surveyId': surveyRef.id,
+        'senderId': FirebaseAuth.instance.currentUser!.uid,
+        'message': "Yeni anket oluşturuldu: ${widget.surveyTitle}",
+        'timestamp': FieldValue.serverTimestamp(),
+        'receivers': receivers,
+        'seenBy': [],
       });
 
       if (!mounted) return;

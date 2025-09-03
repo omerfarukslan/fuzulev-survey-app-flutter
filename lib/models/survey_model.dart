@@ -20,8 +20,8 @@ class Survey {
   final List<String> allowedDepartments;
   final bool isVisible;
 
-  final int answeredCount; // yeni eklendi
-  final int targetCount; // yeni eklendi
+  final int answeredCount;
+  final int targetCount;
 
   Survey({
     required this.id,
@@ -64,8 +64,8 @@ class Survey {
       allowedUsers: List<String>.from(data['visibleToUsers'] ?? []),
       allowedDepartments: List<String>.from(data['visibleToDepartments'] ?? []),
       isVisible: data['isVisible'] ?? true,
-      answeredCount: data['answeredCount'] ?? 0, // firestore'dan al
-      targetCount: data['targetCount'] ?? 0, // firestore'dan al
+      answeredCount: data['answeredCount'] ?? 0,
+      targetCount: data['targetCount'] ?? 0,
     );
   }
 

@@ -126,16 +126,13 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
       final fs = Provider.of<FirestoreService>(context, listen: false);
       final userId = currentUser?.uid ?? "idsiz";
 
-      // Cevapları map'e ekle
       final answersMap = <String, dynamic>{};
       _answers.forEach((key, value) {
         answersMap['q${key + 1}'] = value;
       });
 
-      // Yanıtları kaydet
       await fs.submitResponse(widget.surveyId, userId, answersMap);
 
-      // Kullanıcı adını Firestore'dan al
       String userName = "Bilinmeyen Kullanıcı";
       final userDoc =
           await FirebaseFirestore.instance
@@ -146,7 +143,6 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
         userName = userDoc['name'] ?? "Bilinmeyen Kullanıcı";
       }
 
-      // Anket başlığını Firestore'dan al
       String surveyTitle = "Anket";
       final surveyDoc =
           await FirebaseFirestore.instance
@@ -157,13 +153,14 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
         surveyTitle = surveyDoc['title'] ?? "Anket";
       }
 
-      // Bildirimi kaydet
       await FirebaseFirestore.instance.collection("notifications").add({
         "surveyId": widget.surveyId,
-        "userId": userId,
+        "senderId": userId,
         "message":
             "$userName adlı kullanıcı '$surveyTitle' adlı anketi cevapladı",
         "timestamp": FieldValue.serverTimestamp(),
+        "receivers": await _getAdminIds(),
+        "seenBy": [],
       });
 
       if (!mounted) return;
@@ -176,6 +173,16 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<List<String>> _getAdminIds() async {
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection("users")
+            .where("isAdmin", isEqualTo: true)
+            .get();
+
+    return snapshot.docs.map((d) => d.id).toList();
   }
 
   Future<void> _saveEffect() {
@@ -297,7 +304,6 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Soru tipi etiketi
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -323,7 +329,6 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
                       ),
                       const SizedBox(height: 12),
 
-                      // Soru metni
                       Text(
                         question.questionText,
                         style: const TextStyle(
@@ -335,7 +340,6 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
                       ),
                       const SizedBox(height: 24),
 
-                      // Cevap alanı
                       question.type == 'open_ended'
                           ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -467,6 +471,7 @@ class _SurveyQuestionsScreenState extends State<SurveyQuestionsScreen>
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
+                                      maxLines: 3,
                                       opt,
                                       style: TextStyle(
                                         color:

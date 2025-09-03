@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   clipBehavior: Clip.none,
                   children: [
                     CupertinoButton(
-                      child: Icon(
+                      child: const Icon(
                         CupertinoIcons.bell,
                         color: AppColors.primarySupColor,
                         size: 28,
@@ -140,19 +140,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       stream:
                           FirebaseFirestore.instance
                               .collection("notifications")
-                              .where("seen", isEqualTo: false)
+                              .where("receivers", arrayContains: uid)
                               .snapshots(),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                           return const SizedBox.shrink();
                         }
+
+                        final unseenDocs =
+                            snapshot.data!.docs.where((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              final seenBy = List<String>.from(
+                                data['seenBy'] ?? [],
+                              );
+                              return !seenBy.contains(uid);
+                            }).toList();
+
+                        if (unseenDocs.isEmpty) return const SizedBox.shrink();
+
                         return Positioned(
-                          right: -2,
-                          top: -2,
+                          right: 23,
+                          top: 16,
                           child: Container(
                             width: 10,
                             height: 10,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: CupertinoColors.systemRed,
                               shape: BoxShape.circle,
                             ),

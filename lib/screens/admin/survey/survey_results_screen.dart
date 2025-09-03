@@ -1,4 +1,5 @@
 import 'package:anket/utils/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,7 @@ class SurveyResultsScreen extends StatefulWidget {
 
 class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
   Survey? selectedSurvey;
+  int touchedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +112,6 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Sorular
                 ...selectedSurvey!.questions.asMap().entries.map((entry) {
                   final qIndex = entry.key + 1;
                   final q = entry.value;
@@ -258,7 +259,7 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             );
           },
@@ -370,7 +371,10 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                 ),
               if (title == "Katılım Oranı")
                 Container(
-                  padding: const EdgeInsets.all(5),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 7,
+                    horizontal: 14,
+                  ),
                   decoration: BoxDecoration(
                     color:
                         (responseRate * 100) >= 50
@@ -404,147 +408,155 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
   }) {
     final sortedAnswers =
         answers.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final usersAnswers = sortedAnswers.take(sortedAnswers.length).toList();
+
+    final sectionColors = [
+      Color(0xFF123F8C),
+      Color(0xFF02589F),
+      Color(0xFF0073A4),
+      Color(0xFF0097B8),
+      Color(0xFF00C1CB),
+    ];
+
+    Color lighten(Color color, [double amount = .3]) {
+      final hsl = HSLColor.fromColor(color);
+      final hslLight = hsl.withLightness(
+        (hsl.lightness + amount).clamp(0.0, 1.0),
+      );
+      return hslLight.toColor();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           height: 220,
-          child: BarChart(
-            BarChartData(
-              alignment: BarChartAlignment.spaceAround,
-              maxY:
-                  (sortedAnswers.isNotEmpty
-                      ? sortedAnswers.first.value.toDouble()
-                      : 0) *
-                  1,
-              barGroups:
-                  sortedAnswers
-                      .map(
-                        (e) => BarChartGroupData(
-                          x: e.key.hashCode,
-                          barRods: [
-                            BarChartRodData(
-                              toY: e.value.toDouble(),
-                              color: AppColors.primaryColor,
-                              width: 25,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: true),
-                ),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 60,
-                    getTitlesWidget: (value, meta) {
-                      final label =
-                          sortedAnswers
-                              .firstWhere(
-                                (k) => k.key.hashCode == value.toInt(),
-                                orElse: () => MapEntry('', 0),
-                              )
-                              .key;
-                      final shortLabel =
-                          label.length > 12
-                              ? "${label.substring(0, 12)}..."
-                              : label;
+          child: StatefulBuilder(
+            builder: (context, setLocalState) {
+              return PieChart(
+                PieChartData(
+                  sections:
+                      usersAnswers.asMap().entries.map((entry) {
+                        final indexValue = entry.key;
+                        final e = entry.value;
+                        final percent = total > 0 ? (e.value / total * 100) : 0;
+                        final textToShow = "%${percent.toStringAsFixed(0)}";
 
-                      return SideTitleWidget(
-                        meta: meta,
-                        space: 15,
-                        child: Transform.rotate(
-                          angle: -45 * 3.1416 / 180,
-                          child: Text(
-                            shortLabel,
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: AppColors.onSurfaceColor,
-                            ),
+                        final baseColor =
+                            sectionColors[indexValue % sectionColors.length];
+
+                        return PieChartSectionData(
+                          color: baseColor,
+                          value: e.value.toDouble(),
+                          title: textToShow,
+                          titleStyle: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
                           ),
-                        ),
-                      );
+                          radius: (touchedIndex == indexValue) ? 100.0 : 80.0,
+                          titlePositionPercentageOffset: 0.6,
+                          borderSide:
+                              (touchedIndex == indexValue)
+                                  ? BorderSide(
+                                    style: BorderStyle.solid,
+                                    color: lighten(baseColor, 0.08),
+                                    width: 8.0,
+                                  )
+                                  : const BorderSide(
+                                    color: Colors.white,
+                                    width: 2.0,
+                                  ),
+                        );
+                      }).toList(),
+                  pieTouchData: PieTouchData(
+                    enabled: true,
+                    touchCallback: (FlTouchEvent event, touchResponse) {
+                      if (event is! FlTapUpEvent) return;
+                      setLocalState(() {
+                        if (touchResponse == null ||
+                            touchResponse.touchedSection == null) {
+                          touchedIndex = -1;
+                          return;
+                        }
+                        touchedIndex =
+                            touchResponse.touchedSection!.touchedSectionIndex;
+                      });
                     },
                   ),
                 ),
-              ),
-              gridData: FlGridData(
-                show: true,
-                horizontalInterval: 1,
-                drawVerticalLine: false,
-              ),
-              borderData: FlBorderData(
-                border: Border.all(color: AppColors.secondaryTextColor),
-                show: true,
-              ),
-            ),
+              );
+            },
           ),
         ),
+
         const SizedBox(height: 12),
+
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children:
-              sortedAnswers.map((e) {
+              usersAnswers.asMap().entries.map((entry) {
+                final indexValue = entry.key;
+                final e = entry.value;
                 final percent =
                     total > 0
                         ? (e.value / total * 100).toStringAsFixed(0)
                         : "0";
-                return Column(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        _showRespondentsDialog(
-                          context,
-                          responses,
-                          qIndex,
-                          e.key,
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              e.key,
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceColor,
-                                fontSize: 15,
+
+                final color =
+                    (indexValue < sectionColors.length && e.value > 0)
+                        ? sectionColors[indexValue]
+                        : Colors.white;
+
+                return GestureDetector(
+                  onTap: () {
+                    _showRespondentsDialog(context, responses, qIndex, e.key);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          flex: 5,
+                          child: Row(
+                            children: [
+                              Container(
+                                height: 12,
+                                width: 12,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: color,
+                                  border: Border.all(color: Colors.black26),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
                               ),
-                              overflow: TextOverflow.ellipsis,
+                              Expanded(
+                                child: Text(
+                                  e.key,
+                                  style: const TextStyle(
+                                    color: AppColors.onSurfaceColor,
+                                    fontSize: 15,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: Text(
+                            "%$percent",
+                            textAlign: TextAlign.end,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Container(
-                            width: 59,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "${e.value}",
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "(%$percent)",
-                                  style: const TextStyle(fontSize: 15),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 7),
-                  ],
+                  ),
                 );
               }).toList(),
         ),
@@ -558,6 +570,15 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
     int qIndex,
     String selectedOption,
   ) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final isAdmin = (await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get())
+        .get('isAdmin');
+    if (isAdmin == false) {
+      return;
+    }
     final selectedUserIds = <String>[];
 
     for (var doc in responses) {
@@ -640,7 +661,10 @@ class _SurveyResultsScreenState extends State<SurveyResultsScreen> {
                     color: CupertinoColors.systemGrey6,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text(r),
+                  child: Text(
+                    r,
+                    style: TextStyle(color: AppColors.onSurfaceColor),
+                  ),
                 ),
               )
               .toList(),
