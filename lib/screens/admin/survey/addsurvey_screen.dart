@@ -346,6 +346,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                         fontSize: 18,
                       ),
                       decoration: BoxDecoration(
+                        color: AppColors.surfaceColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       controller: _titleController,

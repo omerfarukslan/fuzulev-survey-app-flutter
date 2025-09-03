@@ -51,7 +51,8 @@ class AppRouter {
         page = const NotificationsScreen();
         break;
       case '/surveys':
-        page = const SurveysList();
+        final args = settings.arguments as Map<String, dynamic>?;
+        page = SurveysList(pageName: args?['pageName'] ?? '');
         break;
       case '/surveyAdd':
         page = const AddSurveyScreen();
@@ -63,6 +64,7 @@ class AppRouter {
           surveyDescription: args?['surveyDescription'] ?? '',
           questions: args?['questions'] ?? [],
         );
+        break;
       case '/surveyQuestions':
         final args = settings.arguments as Map<String, dynamic>?;
         page = SurveyQuestionsScreen(surveyId: args?['surveyId'] ?? '');

@@ -203,6 +203,16 @@ class MyAccountScreen extends StatelessWidget {
                       ),
                       children: [
                         _iosListTile(
+                          title: 'Anket Düzenle',
+                          icon: Icons.edit,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                '/surveys',
+                                arguments: {'pageName': 'Anket Düzenle'},
+                              ),
+                        ),
+                        _iosListTile(
                           icon: CupertinoIcons.add_circled_solid,
                           title: 'Grup Oluştur',
                           onTap:

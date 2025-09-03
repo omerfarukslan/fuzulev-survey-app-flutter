@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: IndexedStack(
                   index: index,
                   children: [
-                    const SurveysList(),
+                    const SurveysList(pageName: 'Anket Listesi'),
                     const AddSurveyScreen(),
                     SurveyResultsScreen(),
                     MyAccountScreen(),

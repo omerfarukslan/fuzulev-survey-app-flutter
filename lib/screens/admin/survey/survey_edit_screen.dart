@@ -1,6 +1,7 @@
 import 'package:anket/models/survey_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import '../../../utils/app_colors.dart';
 
 class SurveyEditScreen extends StatefulWidget {
   final String surveyId;
@@ -39,16 +40,26 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
 
       if (!doc.exists) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Anket bulunamadı')));
+          showCupertinoDialog(
+            context: context,
+            builder:
+                (_) => CupertinoAlertDialog(
+                  title: const Text("Hata"),
+                  content: const Text('Anket bulunamadı'),
+                  actions: [
+                    CupertinoDialogAction(
+                      child: const Text("Tamam"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+          );
           Navigator.pop(context);
         }
         return;
       }
 
       final survey = Survey.fromDoc(doc);
-
       _titleController.text = survey.title;
 
       final loadedQuestions = <QuestionData>[];
@@ -84,24 +95,55 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Yükleme hatası: $e')));
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: const Text("Hata"),
+              content: Text('Yükleme hatası: $e'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text("Tamam"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+      );
       Navigator.pop(context);
     }
   }
 
-  void addQuestion() {
+  void addQuestion(String type) {
     setState(() {
-      questions.add(QuestionData());
+      QuestionData q = QuestionData();
+      q.type = type;
+      if (type == 'multiple_choice') q.options.add(TextEditingController());
+      questions.add(q);
+    });
+  }
+
+  void removeQuestion(int index) {
+    setState(() {
+      questions.removeAt(index);
     });
   }
 
   Future<void> updateSurvey() async {
     try {
       if (_titleController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen anket adını girin')),
+        showCupertinoDialog(
+          context: context,
+          builder:
+              (_) => CupertinoAlertDialog(
+                title: const Text("Uyarı"),
+                content: const Text('Lütfen anket adını girin'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: const Text("Tamam"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
         );
         return;
       }
@@ -126,15 +168,37 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
           }).toList();
 
       if (surveyQuestions.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen en az bir soru girin')),
+        showCupertinoDialog(
+          context: context,
+          builder:
+              (_) => CupertinoAlertDialog(
+                title: const Text("Uyarı"),
+                content: const Text('Lütfen en az bir soru girin'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: const Text("Tamam"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
         );
         return;
       }
 
       if (selectedGroups.isEmpty && selectedUsers.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen hedef kitle seçin')),
+        showCupertinoDialog(
+          context: context,
+          builder:
+              (_) => CupertinoAlertDialog(
+                title: const Text("Uyarı"),
+                content: const Text('Lütfen hedef kitle seçin'),
+                actions: [
+                  CupertinoDialogAction(
+                    child: const Text("Tamam"),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
         );
         return;
       }
@@ -151,393 +215,194 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
           });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Anket güncellendi')));
-      Navigator.pop(context);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Güncelleme hatası: $e')));
-    }
-  }
-
-  Widget _buildAudienceSelector() {
-    return DefaultTabController(
-      length: 2,
-      child: Column(
-        children: [
-          const TabBar(tabs: [Tab(text: "Gruplar"), Tab(text: "Kullanıcılar")]),
-          SizedBox(
-            height: 300,
-            child: TabBarView(
-              children: [
-                StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('groups')
-                          .orderBy('name')
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final groups =
-                        snapshot.data!.docs.where((g) {
-                          final name =
-                              (g['name'] ?? '').toString().toLowerCase();
-                          return name.contains(searchQuery);
-                        }).toList();
-
-                    return ListView(
-                      children:
-                          groups.map((g) {
-                            final id = g.id;
-                            final name = g['name'] ?? '';
-                            return CheckboxListTile(
-                              title: Text(name),
-                              value: selectedGroups.contains(id),
-                              onChanged: (val) {
-                                setState(() {
-                                  if (val == true) {
-                                    selectedGroups.add(id);
-                                  } else {
-                                    selectedGroups.remove(id);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                    );
-                  },
-                ),
-                StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('users')
-                          .orderBy('name')
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final users =
-                        snapshot.data!.docs.where((u) {
-                          final name =
-                              (u['name'] ?? '').toString().toLowerCase();
-                          return name.contains(searchQuery);
-                        }).toList();
-
-                    return ListView(
-                      children:
-                          users.map((u) {
-                            final id = u.id;
-                            final name = u['name'] ?? '';
-                            final dept = u['department'] ?? '';
-                            return CheckboxListTile(
-                              title: Text(name),
-                              subtitle: Text(dept),
-                              value: selectedUsers.contains(id),
-                              onChanged: (val) {
-                                setState(() {
-                                  if (val == true) {
-                                    selectedUsers.add(id);
-                                  } else {
-                                    selectedUsers.remove(id);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                    );
-                  },
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: const Text("Başarılı"),
+              content: const Text('Anket güncellendi'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text("Tamam"),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => CupertinoAlertDialog(
+              title: const Text("Hata"),
+              content: Text('Güncelleme hatası: $e'),
+              actions: [
+                CupertinoDialogAction(
+                  child: const Text("Tamam"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+      );
+    }
+  }
+
+  Widget _buildQuestionCard(QuestionData q, int index) {
+    final String soruTipAd =
+        q.type == 'multiple_choice' ? 'Çoktan Seçmeli' : 'Açık Uçlu';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CupertinoColors.separator),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Soru ${index + 1} ($soruTipAd)",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              CupertinoButton(
+                padding: EdgeInsets.zero,
+                child: const Icon(
+                  CupertinoIcons.trash,
+                  color: CupertinoColors.systemRed,
+                ),
+                onPressed: () => removeQuestion(index),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          CupertinoTextField(
+            controller: q.textController,
+            placeholder: "Sorunuzu yazın",
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: CupertinoColors.systemGrey6,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          if (q.type == 'multiple_choice') ...[
+            const SizedBox(height: 8),
+            Column(
+              children:
+                  q.options.asMap().entries.map((optEntry) {
+                    final optIndex = optEntry.key;
+                    final optController = optEntry.value;
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoTextField(
+                            controller: optController,
+                            placeholder: "Seçenek ${optIndex + 1}",
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: CupertinoColors.systemGrey6,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        CupertinoButton(
+                          padding: EdgeInsets.zero,
+                          child: const Icon(
+                            CupertinoIcons.delete,
+                            color: CupertinoColors.systemRed,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              q.options.removeAt(optIndex);
+                            });
+                          },
+                        ),
+                      ],
+                    );
+                  }).toList(),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                CupertinoSwitch(
+                  value: q.allowMultiple,
+                  onChanged: (val) {
+                    setState(() {
+                      q.allowMultiple = val;
+                    });
+                  },
+                ),
+                const SizedBox(width: 8),
+                const Text("Birden fazla seçilebilir"),
+              ],
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Future<void> toggleVisibility() async {
-    if (_survey == null) return;
-
-    try {
-      final newVisibility = !(_survey!.isVisible ?? true);
-
-      await FirebaseFirestore.instance
-          .collection('surveys')
-          .doc(_survey!.id)
-          .update({'isVisible': newVisibility});
-
-      setState(() {
-        _survey = _survey!.copyWith(isVisible: newVisibility);
-      });
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            newVisibility ? 'Anket artık görünür' : 'Anket artık gizli',
-          ),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Hata: $e')));
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _searchController.dispose();
-    for (final q in questions) {
-      q.textController.dispose();
-      for (final oc in q.options) {
-        oc.dispose();
-      }
-    }
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Anketi Düzenle')),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    } else {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Anketi Düzenle'),
-          actions: [
-            IconButton(
-              onPressed: toggleVisibility,
-              icon: Icon(
-                _survey?.isVisible ?? true
-                    ? Icons.remove_red_eye
-                    : Icons.visibility_off,
-              ),
-            ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              TextField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: "Anket Adı",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView(
-                  children: [
-                    ...questions.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final q = entry.value;
-
-                      return Dismissible(
-                        key: ValueKey("question_$index"),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        onDismissed: (_) {
-                          setState(() {
-                            questions.removeAt(index);
-                          });
-                        },
-                        child: Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              children: [
-                                TextField(
-                                  controller: q.textController,
-                                  decoration: InputDecoration(
-                                    labelText: 'Soru ${index + 1}',
-                                    border: const OutlineInputBorder(),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                DropdownButton<String>(
-                                  value: q.type,
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: 'open_ended',
-                                      child: Text('Açık Uçlu'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: 'multiple_choice',
-                                      child: Text('Çoktan Seçmeli'),
-                                    ),
-                                  ],
-                                  onChanged: (val) {
-                                    setState(() {
-                                      q.type = val!;
-                                      if (q.type == 'multiple_choice' &&
-                                          q.options.isEmpty) {
-                                        q.options.add(TextEditingController());
-                                      }
-                                      if (q.type == 'open_ended') {
-                                        q.options.clear();
-                                        q.allowMultiple = false;
-                                      }
-                                    });
-                                  },
-                                ),
-                                if (q.type == 'multiple_choice') ...[
-                                  Column(
-                                    children:
-                                        q.options.asMap().entries.map((
-                                          optEntry,
-                                        ) {
-                                          final optIndex = optEntry.key;
-                                          final optController = optEntry.value;
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                              vertical: 4,
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: TextField(
-                                                    controller: optController,
-                                                    decoration:
-                                                        const InputDecoration(
-                                                          labelText: 'Seçenek',
-                                                          border:
-                                                              OutlineInputBorder(),
-                                                        ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.delete,
-                                                    color: Colors.red,
-                                                  ),
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      q.options.removeAt(
-                                                        optIndex,
-                                                      );
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                  ),
-                                  Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            q.options.add(
-                                              TextEditingController(),
-                                            );
-                                          });
-                                        },
-                                        icon: const Icon(Icons.playlist_add),
-                                        tooltip: 'Seçenek Ekle',
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: CheckboxListTile(
-                                          contentPadding: EdgeInsets.zero,
-                                          title: const Text(
-                                            'Birden fazla seçilebilir',
-                                          ),
-                                          value: q.allowMultiple,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              q.allowMultiple = value ?? false;
-                                            });
-                                          },
-                                          controlAffinity:
-                                              ListTileControlAffinity.leading,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ],
+    return CupertinoPageScaffold(
+      navigationBar: null, // Anket Düzenle sayfasında appbar tamamen gizli
+      child: SafeArea(
+        child:
+            _loading
+                ? const Center(child: CupertinoActivityIndicator())
+                : Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: ListView(
+                          children: [
+                            const SizedBox(height: 12),
+                            CupertinoTextField(
+                              controller: _titleController,
+                              placeholder: "Anket başlığını girin",
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemGrey6,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                        ),
-                      );
-                    }),
-                    const SizedBox(height: 20),
-                    const Center(
-                      child: Text(
-                        "Hedef Kitle",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                            const SizedBox(height: 12),
+                            ...questions.asMap().entries.map(
+                              (entry) =>
+                                  _buildQuestionCard(entry.value, entry.key),
+                            ),
+                            const SizedBox(height: 20),
+                            CupertinoButton.filled(
+                              child: const Text("Soru Ekle (Çoktan Seçmeli)"),
+                              onPressed: () => addQuestion('multiple_choice'),
+                            ),
+                            const SizedBox(height: 8),
+                            CupertinoButton.filled(
+                              child: const Text("Soru Ekle (Açık Uçlu)"),
+                              onPressed: () => addQuestion('open_ended'),
+                            ),
+                            const SizedBox(height: 20),
+                            CupertinoButton.filled(
+                              child: const Text("Anketi Güncelle"),
+                              onPressed: updateSurvey,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        labelText: "Ara",
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value.toLowerCase();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    _buildAudienceSelector(),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            FloatingActionButton(
-              heroTag: "ekleBtn",
-              onPressed: addQuestion,
-              backgroundColor: Colors.green,
-              tooltip: 'Soru Ekle',
-              child: const Icon(Icons.add),
-            ),
-            const SizedBox(height: 12),
-            FloatingActionButton(
-              heroTag: "guncelleBtn",
-              onPressed: updateSurvey,
-              backgroundColor: Colors.blueAccent,
-              tooltip: 'Anketi Güncelle',
-              child: const Icon(Icons.save),
-            ),
-          ],
-        ),
-      );
-    }
+      ),
+    );
   }
 }

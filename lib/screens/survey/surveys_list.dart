@@ -8,8 +8,8 @@ import '../../models/survey_model.dart';
 import '../../utils/app_colors.dart';
 
 class SurveysList extends StatefulWidget {
-  const SurveysList({super.key});
-
+  const SurveysList({super.key, required this.pageName});
+  final String pageName;
   @override
   State<SurveysList> createState() => _SurveysListState();
 }
@@ -88,6 +88,28 @@ class _SurveysListState extends State<SurveysList> {
     }
 
     return CupertinoPageScaffold(
+      navigationBar:
+          widget.pageName == 'Anket Listesi'
+              ? null
+              : CupertinoNavigationBar(
+                middle: Text(
+                  'Anket Düzenle',
+                  style: const TextStyle(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                  ),
+                ),
+                leading: CupertinoButton(
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                  child: const Icon(
+                    CupertinoIcons.back,
+                    color: AppColors.primarySupColor,
+                    size: 26,
+                  ),
+                ),
+              ),
       child: SafeArea(
         child: StreamBuilder<List<Survey>>(
           stream: fs.surveysStream(),
@@ -248,11 +270,19 @@ class _SurveysListState extends State<SurveysList> {
                       ],
                     ),
                     onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/surveyQuestions',
-                        arguments: {'surveyId': survey.id},
-                      );
+                      if (widget.pageName == 'Anket Listesi') {
+                        Navigator.pushNamed(
+                          context,
+                          '/surveyQuestions',
+                          arguments: {'surveyId': survey.id},
+                        );
+                      } else if (widget.pageName == 'Anket Düzenle') {
+                        Navigator.pushNamed(
+                          context,
+                          '/surveyEdit',
+                          arguments: {'surveyId': survey.id},
+                        );
+                      }
                     },
                   ),
                 );
