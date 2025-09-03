@@ -1,7 +1,5 @@
 import 'package:anket/models/survey_model.dart';
-import 'package:anket/screens/admin/survey/target_audience_selection_screen.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../utils/app_colors.dart';
 
@@ -338,7 +336,7 @@ class _AddSurveyScreenState extends State<AddSurveyScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Container(
+                  SizedBox(
                     height: 55,
                     child: CupertinoTextField(
                       style: const TextStyle(
