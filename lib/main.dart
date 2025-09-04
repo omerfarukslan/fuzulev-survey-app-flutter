@@ -2,6 +2,7 @@ import 'package:anket/services/firebase_options.dart';
 import 'package:anket/utils/app_colors.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'utils/app_router.dart';
@@ -28,15 +29,15 @@ class SurveyApp extends StatelessWidget {
         builder: (context, auth, _) {
           return CupertinoApp(
             debugShowCheckedModeBanner: false,
-            title: 'Survey App',
             onGenerateRoute: AppRouter.generateRoute,
             initialRoute: '/splash',
-            theme: const CupertinoThemeData(
+            theme: CupertinoThemeData(
               primaryColor: AppColors.primaryColor,
               barBackgroundColor: AppColors.backgroundColor,
               scaffoldBackgroundColor: AppColors.backgroundColor,
               textTheme: CupertinoTextThemeData(
                 textStyle: TextStyle(
+                  fontFamily: GoogleFonts.roboto().fontFamily,
                   color: AppColors.secondaryTextColor,
                   fontSize: 16,
                 ),
