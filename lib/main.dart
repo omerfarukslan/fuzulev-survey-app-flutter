@@ -27,10 +27,12 @@ class SurveyApp extends StatelessWidget {
       ],
       child: Consumer<AuthService>(
         builder: (context, auth, _) {
+          final initialRoute = auth.user != null ? '/home' : '/firstPage';
+
           return CupertinoApp(
             debugShowCheckedModeBanner: false,
             onGenerateRoute: AppRouter.generateRoute,
-            initialRoute: '/splash',
+            initialRoute: initialRoute,
             theme: CupertinoThemeData(
               primaryColor: AppColors.primaryColor,
               barBackgroundColor: AppColors.backgroundColor,

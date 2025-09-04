@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(milliseconds: 1200), () {
+    Timer(const Duration(milliseconds: 600), () {
       final auth = Provider.of<AuthService>(context, listen: false);
       if (auth.user != null) {
         Navigator.pushReplacementNamed(context, '/home');
