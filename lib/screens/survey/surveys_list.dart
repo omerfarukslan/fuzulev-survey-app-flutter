@@ -83,10 +83,6 @@ class _SurveysListState extends State<SurveysList> {
   Widget build(BuildContext context) {
     final fs = Provider.of<FirestoreService>(context, listen: false);
 
-    if (isLoading) {
-      return const Center(child: CupertinoActivityIndicator());
-    }
-
     return CupertinoPageScaffold(
       navigationBar:
           widget.pageName == 'Anket Listesi'
@@ -111,185 +107,199 @@ class _SurveysListState extends State<SurveysList> {
                 ),
               ),
       child: SafeArea(
-        child: StreamBuilder<List<Survey>>(
-          stream: fs.surveysStream(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CupertinoActivityIndicator());
-            }
+        child:
+            isLoading
+                ? const Center(child: CupertinoActivityIndicator())
+                : StreamBuilder<List<Survey>>(
+                  stream: fs.surveysStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CupertinoActivityIndicator());
+                    }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Hata oluştu: ${snapshot.error}'));
-            }
-
-            final allSurveys = snapshot.data ?? [];
-
-            final surveys =
-                isAdmin
-                    ? allSurveys
-                    : allSurveys.where((survey) {
-                      final surveyMap = survey.toMap();
-                      if (surveyMap['isVisible'] != true) return false;
-
-                      final allowedGroups = List<String>.from(
-                        surveyMap['allowedGroups'] ?? [],
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Hata oluştu: ${snapshot.error}'),
                       );
-                      final allowedUsers = List<String>.from(
-                        surveyMap['allowedUsers'] ?? [],
-                      );
+                    }
 
-                      bool groupAllowed = true;
-                      if (allowedGroups.isNotEmpty) {
-                        groupAllowed = userGroups.any(
-                          (g) => allowedGroups.contains(g),
+                    final allSurveys = snapshot.data ?? [];
+
+                    final surveys =
+                        isAdmin
+                            ? allSurveys
+                            : allSurveys.where((survey) {
+                              final surveyMap = survey.toMap();
+                              if (surveyMap['isVisible'] != true) return false;
+
+                              final allowedGroups = List<String>.from(
+                                surveyMap['allowedGroups'] ?? [],
+                              );
+                              final allowedUsers = List<String>.from(
+                                surveyMap['allowedUsers'] ?? [],
+                              );
+
+                              bool groupAllowed = true;
+                              if (allowedGroups.isNotEmpty) {
+                                groupAllowed = userGroups.any(
+                                  (g) => allowedGroups.contains(g),
+                                );
+                              }
+
+                              bool userAllowed = true;
+                              if (allowedUsers.isNotEmpty) {
+                                userAllowed = allowedUsers.contains(
+                                  currentUserUid,
+                                );
+                              }
+
+                              final isAllowed = groupAllowed && userAllowed;
+                              final isAnswered = answeredSurveyIds.contains(
+                                survey.id,
+                              );
+
+                              return isAllowed && !isAnswered;
+                            }).toList();
+
+                    if (surveys.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.assignment_turned_in_outlined,
+                              size: 60,
+                              color: CupertinoColors.inactiveGray,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              'Henüz cevaplamadığınız anket yok.',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: CupertinoColors.systemGrey,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      itemCount: surveys.length,
+                      itemBuilder: (context, index) {
+                        final survey = surveys[index];
+                        final surveyMap = survey.toMap();
+                        final title = surveyMap['title'] ?? 'Adsız Anket';
+
+                        final targetCount = surveyMap['targetCount'] ?? 0;
+                        final answeredCount = surveyMap['answeredCount'] ?? 0;
+                        final description = surveyMap['description'] ?? '';
+
+                        final createdAtField = surveyMap['createdAt'];
+                        final createdAt =
+                            (createdAtField is Timestamp)
+                                ? createdAtField.toDate()
+                                : null;
+
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 8,
+                            horizontal: 18,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: CupertinoColors.systemGrey.withOpacity(
+                                  0.3,
+                                ),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: CupertinoListTile(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            title: Text(
+                              title,
+                              style: const TextStyle(
+                                color: AppColors.onSurfaceColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 20,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(height: 6),
+                                Text(
+                                  "Hedeflenen: $targetCount kişi • Cevaplayan: $answeredCount kişi",
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Container(
+                                  child: Text(
+                                    description,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (createdAt != null)
+                                  Text(
+                                    _timeAgo(createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  CupertinoIcons.right_chevron,
+                                  color: AppColors.primaryColor,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              if (widget.pageName == 'Anket Listesi') {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/surveyQuestions',
+                                  arguments: {'surveyId': survey.id},
+                                );
+                              } else if (widget.pageName == 'Anket Düzenle') {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/surveyEdit',
+                                  arguments: {'surveyId': survey.id},
+                                );
+                              }
+                            },
+                          ),
                         );
-                      }
-
-                      bool userAllowed = true;
-                      if (allowedUsers.isNotEmpty) {
-                        userAllowed = allowedUsers.contains(currentUserUid);
-                      }
-
-                      final isAllowed = groupAllowed && userAllowed;
-                      final isAnswered = answeredSurveyIds.contains(survey.id);
-
-                      return isAllowed && !isAnswered;
-                    }).toList();
-
-            if (surveys.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      Icons.assignment_turned_in_outlined,
-                      size: 60,
-                      color: CupertinoColors.inactiveGray,
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Henüz cevaplamadığınız anket yok.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                      },
+                    );
+                  },
                 ),
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              itemCount: surveys.length,
-              itemBuilder: (context, index) {
-                final survey = surveys[index];
-                final surveyMap = survey.toMap();
-                final title = surveyMap['title'] ?? 'Adsız Anket';
-
-                final targetCount = surveyMap['targetCount'] ?? 0;
-                final answeredCount = surveyMap['answeredCount'] ?? 0;
-                final description = surveyMap['description'] ?? '';
-
-                final createdAtField = surveyMap['createdAt'];
-                final createdAt =
-                    (createdAtField is Timestamp)
-                        ? createdAtField.toDate()
-                        : null;
-
-                return Container(
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 18,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: CupertinoColors.systemGrey.withOpacity(0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: CupertinoListTile(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    title: Text(
-                      title,
-                      style: const TextStyle(
-                        color: AppColors.onSurfaceColor,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 20,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 6),
-                        Text(
-                          "Hedeflenen: $targetCount kişi • Cevaplayan: $answeredCount kişi",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Container(
-                          child: Text(
-                            description,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: AppColors.secondaryTextColor,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (createdAt != null)
-                          Text(
-                            _timeAgo(createdAt),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: CupertinoColors.systemGrey,
-                            ),
-                          ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          CupertinoIcons.right_chevron,
-                          color: AppColors.primaryColor,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      if (widget.pageName == 'Anket Listesi') {
-                        Navigator.pushNamed(
-                          context,
-                          '/surveyQuestions',
-                          arguments: {'surveyId': survey.id},
-                        );
-                      } else if (widget.pageName == 'Anket Düzenle') {
-                        Navigator.pushNamed(
-                          context,
-                          '/surveyEdit',
-                          arguments: {'surveyId': survey.id},
-                        );
-                      }
-                    },
-                  ),
-                );
-              },
-            );
-          },
-        ),
       ),
     );
   }
