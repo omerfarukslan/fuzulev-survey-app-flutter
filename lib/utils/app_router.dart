@@ -11,6 +11,7 @@ import 'package:anket/screens/admin/group/groupedit_screen.dart';
 import 'package:anket/screens/admin/group/grouplist_screen.dart';
 import 'package:anket/screens/admin/survey/survey_results_screen.dart';
 import 'package:anket/screens/admin/survey/target_audience_selection_screen.dart';
+import 'package:anket/screens/admin/survey/target_update_screen.dart';
 import 'package:anket/screens/admin/survey/user_responses_screen.dart';
 import 'package:anket/screens/admin/unanswers_list_screen.dart';
 import 'package:anket/screens/auth/first_page.dart';
@@ -63,6 +64,20 @@ class AppRouter {
           surveyTitle: args?['surveyTitle'] ?? '',
           surveyDescription: args?['surveyDescription'] ?? '',
           questions: args?['questions'] ?? [],
+        );
+        break;
+      case '/targetUpdateScreen':
+        final args = settings.arguments as Map<String, dynamic>?;
+        page = TargetUpdateScreen(
+          surveyId: args?['surveyId'] ?? '',
+          surveyTitle: args?['surveyTitle'] ?? '',
+          surveyDescription: args?['surveyDescription'] ?? '',
+          questions: List<Map<String, dynamic>>.from(args?['questions'] ?? []),
+          selectedGroups: List<String>.from(args?['selectedGroups'] ?? []),
+          selectedUsers: List<String>.from(args?['selectedUsers'] ?? []),
+          selectedDepartments: List<String>.from(
+            args?['selectedDepartments'] ?? [],
+          ),
         );
         break;
       case '/surveyQuestions':

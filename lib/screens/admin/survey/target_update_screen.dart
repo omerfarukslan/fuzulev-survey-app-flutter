@@ -1,33 +1,47 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import '../../../utils/app_colors.dart';
 
-class AudienceScreen extends StatefulWidget {
+class TargetUpdateScreen extends StatefulWidget {
+  final String surveyId;
   final String surveyTitle;
   final String surveyDescription;
   final List<Map<String, dynamic>> questions;
+  final List<String> selectedGroups;
+  final List<String> selectedUsers;
+  final List<String> selectedDepartments;
 
-  const AudienceScreen({
+  const TargetUpdateScreen({
     super.key,
+    required this.surveyId,
     required this.surveyTitle,
     required this.surveyDescription,
     required this.questions,
+    required this.selectedGroups,
+    required this.selectedUsers,
+    required this.selectedDepartments,
   });
 
   @override
-  State<AudienceScreen> createState() => _AudienceScreenState();
+  State<TargetUpdateScreen> createState() => _TargetUpdateScreenState();
 }
 
-class _AudienceScreenState extends State<AudienceScreen> {
+class _TargetUpdateScreenState extends State<TargetUpdateScreen> {
   String searchQuery = '';
   int _currentTab = 0;
 
-  List<String> selectedGroups = [];
-  List<String> selectedUsers = [];
-  List<String> selectedDepartments = [];
+  late List<String> selectedGroups;
+  late List<String> selectedUsers;
+  late List<String> selectedDepartments;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedGroups = List.from(widget.selectedGroups);
+    selectedUsers = List.from(widget.selectedUsers);
+    selectedDepartments = List.from(widget.selectedDepartments);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +57,7 @@ class _AudienceScreenState extends State<AudienceScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         middle: const Text(
-          "Hedef Kitleyi Seçin",
+          "Hedef Kitleyi Güncelle",
           style: TextStyle(
             color: AppColors.primaryColor,
             fontWeight: FontWeight.w600,
@@ -68,8 +82,6 @@ class _AudienceScreenState extends State<AudienceScreen> {
             Expanded(
               child: Column(
                 children: [
-                  SizedBox(height: 12),
-
                   CupertinoSegmentedControl<int>(
                     groupValue: _currentTab,
                     children: const {
@@ -92,7 +104,7 @@ class _AudienceScreenState extends State<AudienceScreen> {
                       });
                     },
                   ),
-                  SizedBox(height: 18),
+                  const SizedBox(height: 18),
                   Expanded(
                     child:
                         _currentTab == 0
@@ -109,8 +121,8 @@ class _AudienceScreenState extends State<AudienceScreen> {
               child: SizedBox(
                 width: double.infinity,
                 child: CupertinoButton.filled(
-                  onPressed: _saveSurvey,
-                  child: const Text("Seçimi Onayla"),
+                  onPressed: _updateSurveyWithQuestions,
+                  child: const Text("Seçimi Güncelle"),
                 ),
               ),
             ),
@@ -120,92 +132,62 @@ class _AudienceScreenState extends State<AudienceScreen> {
     );
   }
 
-  Future<void> _saveSurvey() async {
+  Future<void> _updateSurveyWithQuestions() async {
+    if (selectedGroups.isEmpty &&
+        selectedUsers.isEmpty &&
+        selectedDepartments.isEmpty) {
+      showCupertinoDialog(
+        context: context,
+        builder:
+            (_) => const CupertinoAlertDialog(
+              title: Text("Uyarı"),
+              content: Text("Lütfen en az bir hedef kitle seçin."),
+            ),
+      );
+      return;
+    }
+
+    final Set<String> targetUserIds = {};
+
+    if (selectedGroups.isNotEmpty) {
+      final groupsSnapshot =
+          await FirebaseFirestore.instance
+              .collection('groups')
+              .where(FieldPath.documentId, whereIn: selectedGroups)
+              .get();
+
+      for (var g in groupsSnapshot.docs) {
+        final members = List<String>.from(g['members'] ?? []);
+        targetUserIds.addAll(members);
+      }
+    }
+
+    targetUserIds.addAll(selectedUsers);
+
+    if (selectedDepartments.isNotEmpty) {
+      final usersSnapshot =
+          await FirebaseFirestore.instance.collection('users').get();
+      for (var u in usersSnapshot.docs) {
+        final data = u.data();
+        if (selectedDepartments.contains(data['department'])) {
+          targetUserIds.add(u.id);
+        }
+      }
+    }
+
     try {
-      if (selectedGroups.isEmpty &&
-          selectedUsers.isEmpty &&
-          selectedDepartments.isEmpty) {
-        if (!mounted) return;
-        showCupertinoDialog(
-          context: context,
-          builder:
-              (_) => CupertinoAlertDialog(
-                title: const Text("Uyarı"),
-                content: const Text("Lütfen en az bir hedef kitle seçin."),
-                actions: [
-                  CupertinoDialogAction(
-                    child: CupertinoButton(
-                      child: const Text("Tamam"),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                ],
-              ),
-        );
-        return;
-      }
-
-      final Set<String> targetUserIds = {};
-
-      if (selectedGroups.isNotEmpty) {
-        final groupsSnapshot =
-            await FirebaseFirestore.instance
-                .collection('groups')
-                .where(FieldPath.documentId, whereIn: selectedGroups)
-                .get();
-
-        for (var g in groupsSnapshot.docs) {
-          final members = List<String>.from(g['members'] ?? []);
-          targetUserIds.addAll(members);
-        }
-      }
-
-      targetUserIds.addAll(selectedUsers);
-
-      if (selectedDepartments.isNotEmpty) {
-        final usersSnapshot =
-            await FirebaseFirestore.instance.collection('users').get();
-        for (var u in usersSnapshot.docs) {
-          final data = u.data();
-          if (selectedDepartments.contains(data['department'])) {
-            targetUserIds.add(u.id);
-          }
-        }
-      }
-
-      final surveyRef = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('surveys')
-          .add({
+          .doc(widget.surveyId)
+          .update({
             'title': widget.surveyTitle,
             'description': widget.surveyDescription,
             'questions': widget.questions,
             'visibleToGroups': selectedGroups,
             'visibleToUsers': selectedUsers,
             'visibleToDepartments': selectedDepartments,
-            'createdAt': FieldValue.serverTimestamp(),
             'targetCount': targetUserIds.length,
-            'answeredCount': 0,
-            'isVisible': true,
           });
-
-      final adminsSnapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .where('isAdmin', isEqualTo: true)
-              .get();
-
-      final adminIds = adminsSnapshot.docs.map((d) => d.id).toList();
-
-      final receivers = {...adminIds, ...targetUserIds}.toList();
-
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'surveyId': surveyRef.id,
-        'senderId': FirebaseAuth.instance.currentUser!.uid,
-        'message': "Yeni anket oluşturuldu: ${widget.surveyTitle}",
-        'timestamp': FieldValue.serverTimestamp(),
-        'receivers': receivers,
-        'seenBy': [],
-      });
 
       if (!mounted) return;
       Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
@@ -216,7 +198,7 @@ class _AudienceScreenState extends State<AudienceScreen> {
         builder:
             (ctx) => CupertinoAlertDialog(
               title: const Text("Hata"),
-              content: Text("Kaydedilirken bir hata oluştu: $e"),
+              content: Text("Güncellenirken bir hata oluştu: $e"),
               actions: [
                 CupertinoDialogAction(
                   child: const Text("Tamam"),
@@ -305,83 +287,6 @@ class _AudienceScreenState extends State<AudienceScreen> {
     );
   }
 
-  Widget _buildDepartmentsList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CupertinoActivityIndicator());
-        }
-
-        final allUsers = snapshot.data!.docs;
-        final departments =
-            allUsers
-                .map((u) {
-                  final data = u.data() as Map<String, dynamic>;
-                  return data.containsKey('department')
-                      ? data['department']
-                      : '';
-                })
-                .toSet()
-                .where((d) => d.toLowerCase().contains(searchQuery))
-                .toList();
-
-        if (departments.isEmpty) {
-          return const Center(child: Text("Hiç departman bulunamadı"));
-        }
-
-        return ListView(
-          children:
-              departments.map((dept) {
-                final isSelected = selectedDepartments.contains(dept);
-                return Card(
-                  color: CupertinoColors.white,
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? AppColors.primarySupColor
-                                : CupertinoColors.systemGrey4,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
-
-                      title: Text(
-                        dept,
-                        style: TextStyle(
-                          color: AppColors.onSurfaceColor,
-                          fontSize: 20,
-                        ),
-                      ),
-                      value: isSelected,
-                      onChanged: (val) {
-                        setState(() {
-                          if (val == true) {
-                            selectedDepartments.add(dept);
-                          } else {
-                            selectedDepartments.remove(dept);
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                );
-              }).toList(),
-        );
-      },
-    );
-  }
-
   Widget _buildUsersList() {
     return StreamBuilder<QuerySnapshot>(
       stream:
@@ -453,6 +358,83 @@ class _AudienceScreenState extends State<AudienceScreen> {
                             selectedUsers.add(id);
                           } else {
                             selectedUsers.remove(id);
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                );
+              }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildDepartmentsList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('users').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
+
+        final allUsers = snapshot.data!.docs;
+        final departments =
+            allUsers
+                .map((u) {
+                  final data = u.data() as Map<String, dynamic>;
+                  return data.containsKey('department')
+                      ? data['department']
+                      : '';
+                })
+                .toSet()
+                .where((d) => d.toLowerCase().contains(searchQuery))
+                .toList();
+
+        if (departments.isEmpty) {
+          return const Center(child: Text("Hiç departman bulunamadı"));
+        }
+
+        return ListView(
+          children:
+              departments.map((dept) {
+                final isSelected = selectedDepartments.contains(dept);
+                return Card(
+                  color: CupertinoColors.white,
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color:
+                            isSelected
+                                ? AppColors.primarySupColor
+                                : CupertinoColors.systemGrey4,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+
+                      title: Text(
+                        dept,
+                        style: TextStyle(
+                          color: AppColors.onSurfaceColor,
+                          fontSize: 20,
+                        ),
+                      ),
+                      value: isSelected,
+                      onChanged: (val) {
+                        setState(() {
+                          if (val == true) {
+                            selectedDepartments.add(dept);
+                          } else {
+                            selectedDepartments.remove(dept);
                           }
                         });
                       },

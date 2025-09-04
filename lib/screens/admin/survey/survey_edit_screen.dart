@@ -13,15 +13,10 @@ class SurveyEditScreen extends StatefulWidget {
 
 class _SurveyEditScreenState extends State<SurveyEditScreen> {
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
 
   bool _loading = true;
-  String searchQuery = '';
   List<QuestionData> questions = [QuestionData()];
-
-  final Set<String> selectedGroups = {};
-  final Set<String> selectedUsers = {};
-
   Survey? _survey;
 
   @override
@@ -31,227 +26,49 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
   }
 
   Future<void> _loadSurvey() async {
-    try {
-      final doc =
-          await FirebaseFirestore.instance
-              .collection('surveys')
-              .doc(widget.surveyId)
-              .get();
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('surveys')
+            .doc(widget.surveyId)
+            .get();
 
-      if (!doc.exists) {
-        if (mounted) {
-          showCupertinoDialog(
-            context: context,
-            builder:
-                (_) => CupertinoAlertDialog(
-                  title: const Text("Hata"),
-                  content: const Text('Anket bulunamadı'),
-                  actions: [
-                    CupertinoDialogAction(
-                      child: const Text("Tamam"),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-          );
-          Navigator.pop(context);
-        }
-        return;
-      }
+    if (!doc.exists) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
 
-      final survey = Survey.fromDoc(doc);
-      _titleController.text = survey.title;
+    final survey = Survey.fromDoc(doc);
+    _titleController.text = survey.title;
+    _descController.text = survey.description;
 
-      final loadedQuestions = <QuestionData>[];
-      for (final q in survey.questions) {
-        final qd = QuestionData();
-        qd.textController.text = q.questionText;
-        qd.type = q.type;
-        qd.allowMultiple = q.allowMultipleAnswers;
-        if (q.type == 'multiple_choice') {
-          qd.options =
-              q.options.map((opt) => TextEditingController(text: opt)).toList();
-          if (qd.options.isEmpty) {
-            qd.options.add(TextEditingController());
+    final loadedQuestions =
+        survey.questions.map((q) {
+          final qd =
+              QuestionData()
+                ..textController.text = q.questionText
+                ..type = q.type
+                ..allowMultiple = q.allowMultipleAnswers;
+
+          if (q.type == 'multiple_choice') {
+            qd.options =
+                q.options
+                    .map((opt) => TextEditingController(text: opt))
+                    .toList();
+            if (qd.options.isEmpty) qd.options.add(TextEditingController());
           }
-        }
-        loadedQuestions.add(qd);
-      }
-      if (loadedQuestions.isEmpty) {
-        loadedQuestions.add(QuestionData());
-      }
+          return qd;
+        }).toList();
 
-      selectedGroups
-        ..clear()
-        ..addAll(survey.allowedGroups);
-      selectedUsers
-        ..clear()
-        ..addAll(survey.allowedUsers);
-
-      setState(() {
-        questions = loadedQuestions;
-        _survey = survey;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: const Text("Hata"),
-              content: Text('Yükleme hatası: $e'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text("Tamam"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
-      Navigator.pop(context);
-    }
-  }
-
-  void addQuestion(String type) {
     setState(() {
-      QuestionData q = QuestionData();
-      q.type = type;
-      if (type == 'multiple_choice') q.options.add(TextEditingController());
-      questions.add(q);
+      questions = loadedQuestions.isEmpty ? [QuestionData()] : loadedQuestions;
+      _survey = survey;
+      _loading = false;
     });
-  }
-
-  void removeQuestion(int index) {
-    setState(() {
-      questions.removeAt(index);
-    });
-  }
-
-  Future<void> updateSurvey() async {
-    try {
-      if (_titleController.text.trim().isEmpty) {
-        showCupertinoDialog(
-          context: context,
-          builder:
-              (_) => CupertinoAlertDialog(
-                title: const Text("Uyarı"),
-                content: const Text('Lütfen anket adını girin'),
-                actions: [
-                  CupertinoDialogAction(
-                    child: const Text("Tamam"),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-        );
-        return;
-      }
-
-      final surveyQuestions =
-          questions.where((q) => q.textController.text.trim().isNotEmpty).map((
-            q,
-          ) {
-            return {
-              "questionText": q.textController.text.trim(),
-              "type": q.type,
-              "options":
-                  q.type == "multiple_choice"
-                      ? q.options
-                          .map((o) => o.text.trim())
-                          .where((t) => t.isNotEmpty)
-                          .toList()
-                      : [],
-              "allowMultipleAnswers":
-                  q.type == "multiple_choice" ? q.allowMultiple : false,
-            };
-          }).toList();
-
-      if (surveyQuestions.isEmpty) {
-        showCupertinoDialog(
-          context: context,
-          builder:
-              (_) => CupertinoAlertDialog(
-                title: const Text("Uyarı"),
-                content: const Text('Lütfen en az bir soru girin'),
-                actions: [
-                  CupertinoDialogAction(
-                    child: const Text("Tamam"),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-        );
-        return;
-      }
-
-      if (selectedGroups.isEmpty && selectedUsers.isEmpty) {
-        showCupertinoDialog(
-          context: context,
-          builder:
-              (_) => CupertinoAlertDialog(
-                title: const Text("Uyarı"),
-                content: const Text('Lütfen hedef kitle seçin'),
-                actions: [
-                  CupertinoDialogAction(
-                    child: const Text("Tamam"),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-        );
-        return;
-      }
-
-      await FirebaseFirestore.instance
-          .collection('surveys')
-          .doc(widget.surveyId)
-          .update({
-            'title': _titleController.text.trim(),
-            'questions': surveyQuestions,
-            'visibleToGroups': selectedGroups.toList(),
-            'visibleToUsers': selectedUsers.toList(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
-
-      if (!mounted) return;
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: const Text("Başarılı"),
-              content: const Text('Anket güncellendi'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text("Tamam"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
-      Navigator.pop(context);
-    } catch (e) {
-      if (!mounted) return;
-      showCupertinoDialog(
-        context: context,
-        builder:
-            (_) => CupertinoAlertDialog(
-              title: const Text("Hata"),
-              content: Text('Güncelleme hatası: $e'),
-              actions: [
-                CupertinoDialogAction(
-                  child: const Text("Tamam"),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-      );
-    }
   }
 
   Widget _buildQuestionCard(QuestionData q, int index) {
     final String soruTipAd =
-        q.type == 'multiple_choice' ? 'Çoktan Seçmeli' : 'Açık Uçlu';
+        q.type == 'multiple_choice' ? 'Çoklu Seçimli' : 'Açık Uçlu';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -267,15 +84,29 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Soru ${index + 1} ($soruTipAd)",
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+              Row(
+                children: [
+                  Text(
+                    "Soru ${index + 1}",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18,
+                      color: AppColors.onSurfaceColor,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "($soruTipAd)",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ),
+                ],
               ),
               CupertinoButton(
-                padding: EdgeInsets.zero,
+                padding: const EdgeInsets.only(right: 5),
                 child: const Icon(
                   CupertinoIcons.trash,
                   color: CupertinoColors.systemRed,
@@ -286,49 +117,93 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
           ),
           const SizedBox(height: 8),
           CupertinoTextField(
-            controller: q.textController,
-            placeholder: "Sorunuzu yazın",
-            padding: const EdgeInsets.all(12),
+            style: const TextStyle(color: AppColors.onSurfaceColor),
             decoration: BoxDecoration(
               color: CupertinoColors.systemGrey6,
               borderRadius: BorderRadius.circular(12),
             ),
+            controller: q.textController,
+            placeholder: 'Sorunuzu buraya yazın',
+            placeholderStyle: const TextStyle(
+              color: CupertinoColors.systemGrey,
+            ),
           ),
+          const SizedBox(height: 12),
           if (q.type == 'multiple_choice') ...[
-            const SizedBox(height: 8),
             Column(
               children:
                   q.options.asMap().entries.map((optEntry) {
                     final optIndex = optEntry.key;
                     final optController = optEntry.value;
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoTextField(
-                            controller: optController,
-                            placeholder: "Seçenek ${optIndex + 1}",
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.systemGrey6,
-                              borderRadius: BorderRadius.circular(12),
+                    final bool showDelete = q.options.length > 2;
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CupertinoTextField(
+                              style: const TextStyle(
+                                color: AppColors.onSurfaceColor,
+                              ),
+                              controller: optController,
+                              placeholder: 'Seçenek ${optIndex + 1}',
+                              placeholderStyle: const TextStyle(
+                                color: CupertinoColors.systemGrey,
+                              ),
+                              decoration: BoxDecoration(
+                                color: CupertinoColors.systemGrey6,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
-                        ),
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          child: const Icon(
-                            CupertinoIcons.delete,
-                            color: CupertinoColors.systemRed,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              q.options.removeAt(optIndex);
-                            });
-                          },
-                        ),
-                      ],
+                          if (showDelete)
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              child: const Icon(
+                                CupertinoIcons.delete,
+                                color: CupertinoColors.systemRed,
+                                size: 18,
+                              ),
+                              onPressed: () {
+                                if (q.options.length > 2) {
+                                  setState(() {
+                                    q.options.removeAt(optIndex);
+                                  });
+                                }
+                              },
+                            ),
+                        ],
+                      ),
                     );
                   }).toList(),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: CupertinoColors.separator,
+                  width: 1.5,
+                ),
+              ),
+              child: CupertinoButton(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                color: CupertinoColors.white,
+                child: const Text(
+                  'Seçenek Ekle',
+                  style: TextStyle(
+                    color: AppColors.onSurfaceColor,
+                    fontSize: 16,
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    q.options.add(TextEditingController());
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -342,7 +217,7 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
                   },
                 ),
                 const SizedBox(width: 8),
-                const Text("Birden fazla seçilebilir"),
+                const Text('Birden fazla seçilebilir'),
               ],
             ),
           ],
@@ -351,50 +226,252 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
     );
   }
 
+  void addQuestion(String type) {
+    setState(() {
+      final q = QuestionData()..type = type;
+      if (type == 'multiple_choice') {
+        q.options.add(TextEditingController());
+        q.options.add(TextEditingController());
+      }
+      questions.add(q);
+    });
+  }
+
+  void removeQuestion(int index) {
+    setState(() => questions.removeAt(index));
+  }
+
+  void goToTargetUpdateScreen() {
+    // Başlık boş mu kontrol et
+    if (_titleController.text.trim().isEmpty) {
+      _showWarning("Lütfen anket başlığını girin.");
+      return;
+    }
+
+    // Sorular boş mu kontrol et
+    if (questions.any((q) => q.textController.text.trim().isEmpty)) {
+      _showWarning("Lütfen tüm soruları doldurun.");
+      return;
+    }
+
+    // Soruları map formatına çevir
+    final mappedQuestions =
+        questions
+            .map(
+              (qData) => {
+                'questionText': qData.textController.text.trim(),
+                'type': qData.type,
+                'options':
+                    qData.options
+                        .map((c) => c.text.trim())
+                        .where((t) => t.isNotEmpty)
+                        .toList(),
+                'allowMultipleAnswers': qData.allowMultiple,
+              },
+            )
+            .toList();
+
+    // Navigator ile TargetUpdateScreen’e geç
+    Navigator.pushNamed(
+      context,
+      '/targetUpdateScreen',
+      arguments: {
+        'surveyId': widget.surveyId,
+        'surveyTitle': _titleController.text.trim(),
+        'surveyDescription': _descController.text.trim(),
+        'questions': mappedQuestions,
+        'selectedGroups': _survey?.allowedGroups ?? [],
+        'selectedUsers': _survey?.allowedUsers ?? [],
+        'selectedDepartments': _survey?.allowedDepartments ?? [],
+      },
+    );
+  }
+
+  void _showWarning(String msg) {
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: const Text("Uyarı"),
+            content: Text(msg),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text("Tamam"),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: null, // Anket Düzenle sayfasında appbar tamamen gizli
+      navigationBar: CupertinoNavigationBar(
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(
+            CupertinoIcons.back,
+            color: AppColors.primarySupColor,
+            size: 28,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        middle: const Text(
+          "Anket Düzenle",
+          style: TextStyle(
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+      ),
       child: SafeArea(
         child:
             _loading
                 ? const Center(child: CupertinoActivityIndicator())
                 : Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.only(top: 12),
                   child: Column(
                     children: [
                       Expanded(
                         child: ListView(
+                          padding: const EdgeInsets.all(16),
                           children: [
                             const SizedBox(height: 12),
-                            CupertinoTextField(
-                              controller: _titleController,
-                              placeholder: "Anket başlığını girin",
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.systemGrey6,
-                                borderRadius: BorderRadius.circular(12),
+                            const Text(
+                              "Anket Başlığı",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onSurfaceColor,
+                                fontSize: 20,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 55,
+                              child: CupertinoTextField(
+                                style: const TextStyle(
+                                  color: AppColors.onSurfaceColor,
+                                  fontSize: 18,
+                                ),
+                                controller: _titleController,
+                                placeholder: "Anket başlığını girin",
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "Açıklama (İsteğe Bağlı)",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onSurfaceColor,
+                                fontSize: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            CupertinoTextField(
+                              style: TextStyle(
+                                color: AppColors.onSurfaceColor,
+                                fontSize: 18,
+                              ),
+                              onChanged: (val) {
+                                if (val.length > 500) {
+                                  _descController.text = val.substring(0, 500);
+                                  _descController
+                                      .selection = TextSelection.fromPosition(
+                                    TextPosition(
+                                      offset: _descController.text.length,
+                                    ),
+                                  );
+                                }
+                                setState(() {});
+                              },
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              controller: _descController,
+                              placeholder: "Anket için açıklama girin",
+                              maxLines: 5,
+                            ),
+                            const SizedBox(height: 4),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                "${_descController.text.length}/500",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: CupertinoColors.systemGrey,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              "Soru Ekle",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.onSurfaceColor,
+                                fontSize: 20,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                CupertinoButton(
+                                  color: AppColors.primaryColor,
+                                  child: const Text(
+                                    "Çoktan Seçmeli",
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    addQuestion('multiple_choice');
+                                  },
+                                ),
+                                CupertinoButton(
+                                  color: AppColors.primarySupColor,
+                                  child: const Text(
+                                    "Açık Uçlu",
+                                    style: TextStyle(
+                                      color: CupertinoColors.white,
+                                    ),
+                                  ),
+                                  onPressed: () => addQuestion('open_ended'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
                             ...questions.asMap().entries.map(
                               (entry) =>
                                   _buildQuestionCard(entry.value, entry.key),
                             ),
+
                             const SizedBox(height: 20),
-                            CupertinoButton.filled(
-                              child: const Text("Soru Ekle (Çoktan Seçmeli)"),
-                              onPressed: () => addQuestion('multiple_choice'),
-                            ),
-                            const SizedBox(height: 8),
-                            CupertinoButton.filled(
-                              child: const Text("Soru Ekle (Açık Uçlu)"),
-                              onPressed: () => addQuestion('open_ended'),
-                            ),
-                            const SizedBox(height: 20),
-                            CupertinoButton.filled(
-                              child: const Text("Anketi Güncelle"),
-                              onPressed: updateSurvey,
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                              child: CupertinoButton(
+                                color: CupertinoColors.white,
+                                onPressed: goToTargetUpdateScreen,
+                                child: const Text(
+                                  "Hedef Kitleyi Seçin",
+                                  style: TextStyle(
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

@@ -12,7 +12,7 @@ class Survey {
   final String id;
   final String createdBy;
   final String title;
-  final String? description;
+  final String description;
   final List<Question> questions;
   final Timestamp? createdAt;
   final List<String> allowedGroups;
@@ -27,7 +27,7 @@ class Survey {
     required this.id,
     required this.createdBy,
     required this.title,
-    this.description,
+    required this.description,
     required this.questions,
     this.createdAt,
     this.allowedGroups = const [],
