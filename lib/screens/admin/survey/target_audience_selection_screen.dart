@@ -173,19 +173,6 @@ class _AudienceScreenState extends State<AudienceScreen> {
         }
       }
 
-      await FirebaseFirestore.instance.collection('surveys').add({
-        'title': widget.surveyTitle,
-        'description': widget.surveyDescription,
-        'questions': widget.questions,
-        'visibleToGroups': selectedGroups,
-        'visibleToUsers': selectedUsers,
-        'visibleToDepartments': selectedDepartments,
-        'createdAt': FieldValue.serverTimestamp(),
-        'targetCount': targetUserIds.length,
-        'answeredCount': 0,
-        'isVisible': true,
-      });
-
       final surveyRef = await FirebaseFirestore.instance
           .collection('surveys')
           .add({
