@@ -18,19 +18,12 @@ class FirstPage extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 20),
-                    child: AspectRatio(
-                      aspectRatio: 20 / 18,
-                      child: SvgPicture.asset('assets/svgs/first_page.svg'),
-                    ),
-                  ),
                   Container(
-                    height: 90,
-                    width: 90,
+                    height: 150,
+                    width: 150,
                     decoration: BoxDecoration(
                       color: AppColors.primarySupColor,
                       shape: BoxShape.circle,
@@ -38,8 +31,8 @@ class FirstPage extends StatelessWidget {
                     child: Center(
                       child: SvgPicture.asset(
                         'assets/svgs/survey_icon.svg',
-                        width: 45,
-                        height: 45,
+                        width: 100,
+                        height: 100,
                         colorFilter: const ColorFilter.mode(
                           Colors.white,
                           BlendMode.srcIn,
@@ -47,7 +40,7 @@ class FirstPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
+                  SizedBox(height: 40),
                   const Text(
                     'Hoş Geldin!',
                     textAlign: TextAlign.center,
@@ -57,6 +50,7 @@ class FirstPage extends StatelessWidget {
                       color: AppColors.onSurfaceColor,
                     ),
                   ),
+                  SizedBox(height: 40),
 
                   const Text(
                     ' Fikirleriniz bizim için önemli! \n'
@@ -68,6 +62,7 @@ class FirstPage extends StatelessWidget {
                       color: AppColors.subtitle,
                     ),
                   ),
+                  SizedBox(height: 40),
 
                   SafeArea(
                     top: false,

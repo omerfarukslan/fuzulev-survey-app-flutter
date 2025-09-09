@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'FUZULEV',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primarySupColor,
+                    color: CupertinoColors.white,
                     fontSize: 24,
                   ),
                 ),
@@ -114,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.primarySupColor,
+                        color: CupertinoColors.black,
                       ),
                     ),
                   ),
