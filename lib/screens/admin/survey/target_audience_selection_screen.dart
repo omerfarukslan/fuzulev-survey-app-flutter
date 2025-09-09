@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../../utils/app_colors.dart';
 
@@ -252,54 +253,63 @@ class _AudienceScreenState extends State<AudienceScreen> {
           return const Center(child: Text("Hiç grup bulunamadı"));
         }
 
-        return ListView(
-          children:
-              groups.map((g) {
-                final id = g.id;
-                final name = g['name'];
-                return Card(
-                  color: CupertinoColors.white,
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color:
-                            selectedGroups.contains(id)
-                                ? AppColors.primarySupColor
-                                : CupertinoColors.systemGrey4,
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              right: -5,
+              child: SvgPicture.asset("assets/svgs/filigram2.svg", width: 350),
+            ),
+            ListView(
+              children:
+                  groups.map((g) {
+                    final id = g.id;
+                    final name = g['name'];
+                    return Card(
+                      color: CupertinoColors.white,
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: Text(
-                        name,
-                        style: TextStyle(
-                          color: AppColors.onSurfaceColor,
-                          fontSize: 20,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                selectedGroups.contains(id)
+                                    ? AppColors.primarySupColor
+                                    : CupertinoColors.systemGrey4,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+                          title: Text(
+                            name,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceColor,
+                              fontSize: 20,
+                            ),
+                          ),
+                          value: selectedGroups.contains(id),
+                          onChanged: (val) {
+                            setState(() {
+                              if (val == true) {
+                                selectedGroups.add(id);
+                              } else {
+                                selectedGroups.remove(id);
+                              }
+                            });
+                          },
                         ),
                       ),
-                      value: selectedGroups.contains(id),
-                      onChanged: (val) {
-                        setState(() {
-                          if (val == true) {
-                            selectedGroups.add(id);
-                          } else {
-                            selectedGroups.remove(id);
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+            ),
+          ],
         );
       },
     );

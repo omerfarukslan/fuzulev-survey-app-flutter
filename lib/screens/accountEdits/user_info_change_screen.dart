@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../utils/app_colors.dart';
 
@@ -120,90 +121,112 @@ class _UserInfoChangeScreenState extends State<UserInfoChangeScreen> {
         child:
             _loading
                 ? const Center(child: CupertinoActivityIndicator())
-                : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, bottom: 6),
-                        child: Text(
-                          'Ad Soyad',
-                          style: TextStyle(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20,
-                          ),
-                        ),
+                : Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      right: -5,
+                      child: SvgPicture.asset(
+                        "assets/svgs/filigram2.svg",
+                        width: 350,
                       ),
-                      CupertinoTextField(
-                        controller: _nameCtrl,
-                        padding: const EdgeInsets.all(14),
-                        style: TextStyle(color: AppColors.onSurfaceColor),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: CupertinoColors.systemGrey4,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0, bottom: 6),
-                        child: Text(
-                          'Departman',
-                          style: TextStyle(
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          _showDepartmentPicker(context);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: CupertinoColors.systemGrey4,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 8.0,
+                              bottom: 6,
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            child: Text(
+                              'Ad Soyad',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 20,
+                              ),
+                            ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                _selectedDepartment ?? "Departman Seç",
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: CupertinoColors.black,
+                          CupertinoTextField(
+                            controller: _nameCtrl,
+                            padding: const EdgeInsets.all(14),
+                            style: TextStyle(color: AppColors.onSurfaceColor),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceColor,
+                              border: Border.all(
+                                color: CupertinoColors.systemGrey4,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 8.0,
+                              bottom: 6,
+                            ),
+                            child: Text(
+                              'Departman',
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              _showDepartmentPicker(context);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceColor,
+
+                                border: Border.all(
+                                  color: CupertinoColors.systemGrey4,
                                 ),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              const Icon(
-                                CupertinoIcons.chevron_down,
-                                color: CupertinoColors.systemGrey,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _selectedDepartment ?? "Departman Seç",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: CupertinoColors.black,
+                                    ),
+                                  ),
+                                  const Icon(
+                                    CupertinoIcons.chevron_down,
+                                    color: CupertinoColors.systemGrey,
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                        ),
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton.filled(
+                              borderRadius: BorderRadius.circular(12),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              onPressed: _updateUserInfo,
+                              child: const Text("Kaydet"),
+                            ),
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoButton.filled(
-                          borderRadius: BorderRadius.circular(12),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          onPressed: _updateUserInfo,
-                          child: const Text("Kaydet"),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
       ),
     );

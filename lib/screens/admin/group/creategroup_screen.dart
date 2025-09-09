@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../../utils/app_colors.dart';
 
@@ -105,244 +106,262 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         ),
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
+          children: [
+            Positioned(
+              top: 0,
+              right: -5,
+              child: SvgPicture.asset("assets/svgs/filigram2.svg", width: 350),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
 
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Grup Adı',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Grup Adı',
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              CupertinoTextField(
-                style: TextStyle(color: AppColors.onSurfaceColor),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                controller: _groupNameController,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Kullanıcı Ara',
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  CupertinoTextField(
+                    style: TextStyle(color: AppColors.onSurfaceColor),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey6,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    controller: _groupNameController,
                   ),
-                ),
-              ),
-              CupertinoTextField(
-                style: TextStyle(color: AppColors.onSurfaceColor),
-                controller: _searchController,
-                placeholder: "Ara...",
-                suffix: const Padding(
-                  padding: EdgeInsets.only(right: 12),
-                  child: Icon(
-                    CupertinoIcons.search,
-                    color: AppColors.primarySupColor,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Kullanıcı Ara',
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.toLowerCase();
-                  });
-                },
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream:
-                      FirebaseFirestore.instance
-                          .collection('users')
-                          .orderBy('department')
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(child: CupertinoActivityIndicator());
-                    }
+                  CupertinoTextField(
+                    style: TextStyle(color: AppColors.onSurfaceColor),
+                    controller: _searchController,
+                    placeholder: "Ara...",
+                    suffix: const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: Icon(
+                        CupertinoIcons.search,
+                        color: AppColors.primarySupColor,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CupertinoColors.systemGrey6,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value.toLowerCase();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: StreamBuilder<QuerySnapshot>(
+                      stream:
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .orderBy('department')
+                              .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return const Center(
+                            child: CupertinoActivityIndicator(),
+                          );
+                        }
 
-                    final allUsers = snapshot.data!.docs;
+                        final allUsers = snapshot.data!.docs;
 
-                    final filteredUsers =
-                        allUsers.where((user) {
-                          final name =
-                              (user['name'] ?? '').toString().toLowerCase();
-                          return name.contains(_searchQuery);
-                        }).toList();
+                        final filteredUsers =
+                            allUsers.where((user) {
+                              final name =
+                                  (user['name'] ?? '').toString().toLowerCase();
+                              return name.contains(_searchQuery);
+                            }).toList();
 
-                    final Map<String, List<QueryDocumentSnapshot>> grouped = {};
-                    for (var user in filteredUsers) {
-                      final dept = (user['department'] ?? '').toString();
-                      grouped.putIfAbsent(dept, () => []);
-                      grouped[dept]!.add(user);
-                    }
+                        final Map<String, List<QueryDocumentSnapshot>> grouped =
+                            {};
+                        for (var user in filteredUsers) {
+                          final dept = (user['department'] ?? '').toString();
+                          grouped.putIfAbsent(dept, () => []);
+                          grouped[dept]!.add(user);
+                        }
 
-                    return ListView(
-                      children:
-                          grouped.entries.map((entry) {
-                            final deptName = entry.key;
-                            final deptUsers = entry.value;
+                        return ListView(
+                          children:
+                              grouped.entries.map((entry) {
+                                final deptName = entry.key;
+                                final deptUsers = entry.value;
 
-                            final allSelected = deptUsers.every(
-                              (u) => selectedUsers.contains(u.id),
-                            );
-                            final noneSelected = deptUsers.every(
-                              (u) => !selectedUsers.contains(u.id),
-                            );
+                                final allSelected = deptUsers.every(
+                                  (u) => selectedUsers.contains(u.id),
+                                );
+                                final noneSelected = deptUsers.every(
+                                  (u) => !selectedUsers.contains(u.id),
+                                );
 
-                            bool? deptValue;
-                            if (allSelected) {
-                              deptValue = true;
-                            } else if (noneSelected) {
-                              deptValue = false;
-                            } else {
-                              deptValue = null;
-                            }
+                                bool? deptValue;
+                                if (allSelected) {
+                                  deptValue = true;
+                                } else if (noneSelected) {
+                                  deptValue = false;
+                                } else {
+                                  deptValue = null;
+                                }
 
-                            return Container(
-                              margin: const EdgeInsets.symmetric(vertical: 6),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: CupertinoColors.systemGrey6,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: CupertinoColors.systemGrey3,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      cupertinoCheckbox(
-                                        value: deptValue,
-                                        onChanged: () {
-                                          setState(() {
-                                            if (deptValue != true) {
-                                              for (var u in deptUsers) {
-                                                selectedUsers.add(u.id);
-                                              }
-                                            } else {
-                                              for (var u in deptUsers) {
-                                                selectedUsers.remove(u.id);
-                                              }
-                                            }
-                                          });
-                                        },
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        deptName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.primaryColor,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ],
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 6,
                                   ),
-                                  const SizedBox(height: 8),
-                                  ...deptUsers.map((user) {
-                                    final userId = user.id;
-                                    final name =
-                                        (user['name'] ?? '').toString();
-                                    final department =
-                                        (user['department'] ?? '').toString();
-
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 2,
-                                      ),
-                                      child: Row(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: CupertinoColors.systemGrey6,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: CupertinoColors.systemGrey3,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
                                         children: [
                                           cupertinoCheckbox(
-                                            value: selectedUsers.contains(
-                                              userId,
-                                            ),
+                                            value: deptValue,
                                             onChanged: () {
                                               setState(() {
-                                                if (selectedUsers.contains(
-                                                  userId,
-                                                )) {
-                                                  selectedUsers.remove(userId);
+                                                if (deptValue != true) {
+                                                  for (var u in deptUsers) {
+                                                    selectedUsers.add(u.id);
+                                                  }
                                                 } else {
-                                                  selectedUsers.add(userId);
+                                                  for (var u in deptUsers) {
+                                                    selectedUsers.remove(u.id);
+                                                  }
                                                 }
                                               });
                                             },
                                           ),
                                           const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  name,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    color:
-                                                        AppColors
-                                                            .onSurfaceColor,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  department,
-                                                  style: const TextStyle(
-                                                    color:
-                                                        CupertinoColors
-                                                            .systemGrey,
-                                                    fontSize: 13,
-                                                  ),
-                                                ),
-
-                                                SizedBox(height: 10),
-                                              ],
+                                          Text(
+                                            deptName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primaryColor,
+                                              fontSize: 18,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  }).toList(),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                    );
-                  },
-                ),
-              ),
+                                      const SizedBox(height: 8),
+                                      ...deptUsers.map((user) {
+                                        final userId = user.id;
+                                        final name =
+                                            (user['name'] ?? '').toString();
+                                        final department =
+                                            (user['department'] ?? '')
+                                                .toString();
 
-              const SizedBox(height: 10),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                child: CupertinoButton.filled(
-                  onPressed: _createGroup,
-                  child: const Text("Grubu Oluştur"),
-                ),
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 2,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              cupertinoCheckbox(
+                                                value: selectedUsers.contains(
+                                                  userId,
+                                                ),
+                                                onChanged: () {
+                                                  setState(() {
+                                                    if (selectedUsers.contains(
+                                                      userId,
+                                                    )) {
+                                                      selectedUsers.remove(
+                                                        userId,
+                                                      );
+                                                    } else {
+                                                      selectedUsers.add(userId);
+                                                    }
+                                                  });
+                                                },
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      name,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        color:
+                                                            AppColors
+                                                                .onSurfaceColor,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      department,
+                                                      style: const TextStyle(
+                                                        color:
+                                                            CupertinoColors
+                                                                .systemGrey,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+
+                                                    SizedBox(height: 10),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    child: CupertinoButton.filled(
+                      onPressed: _createGroup,
+                      child: const Text("Grubu Oluştur"),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

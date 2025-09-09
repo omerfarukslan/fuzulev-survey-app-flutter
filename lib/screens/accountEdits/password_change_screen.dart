@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../utils/app_colors.dart';
 
@@ -93,65 +94,81 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
         child:
             _loading
                 ? const Center(child: CupertinoActivityIndicator())
-                : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel("Mevcut Şifreniz"),
-                      _buildTextField(_currentPasswordCtrl, true),
-
-                      const SizedBox(height: 16),
-                      _buildLabel("Yeni Şifre"),
-                      _buildTextField(_newPasswordCtrl, true, checkValid: true),
-
-                      const SizedBox(height: 16),
-                      _buildLabel("Yeni Şifre (Tekrar)"),
-                      _buildTextField(
-                        _confirmPasswordCtrl,
-                        true,
-                        checkValid: true,
+                : Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      right: -5,
+                      child: SvgPicture.asset(
+                        "assets/svgs/filigram2.svg",
+                        width: 350,
                       ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildLabel("Mevcut Şifreniz"),
+                          _buildTextField(_currentPasswordCtrl, true),
 
-                      const Spacer(),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoButton.filled(
-                          borderRadius: BorderRadius.circular(12),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          onPressed: () {
-                            if (_currentPasswordCtrl.text.trim().isEmpty ||
-                                _newPasswordCtrl.text.trim().isEmpty ||
-                                _confirmPasswordCtrl.text.trim().isEmpty) {
-                              _showDialog(
-                                "Hata",
-                                "Lütfen tüm alanları doldurunuz.",
-                              );
-                              return;
-                            }
-                            if (_newPasswordCtrl.text.trim().length < 6) {
-                              _showDialog(
-                                "Hata",
-                                "Şifre en az 6 karakter olmalı.",
-                              );
-                              return;
-                            }
-                            if (_newPasswordCtrl.text.trim() !=
-                                _confirmPasswordCtrl.text.trim()) {
-                              _showDialog("Hata", "Şifreler eşleşmiyor.");
-                              return;
-                            }
+                          const SizedBox(height: 16),
+                          _buildLabel("Yeni Şifre"),
+                          _buildTextField(
+                            _newPasswordCtrl,
+                            true,
+                            checkValid: true,
+                          ),
 
-                            _changePassword(
-                              _currentPasswordCtrl.text.trim(),
-                              _newPasswordCtrl.text.trim(),
-                            );
-                          },
-                          child: const Text("Kaydet"),
-                        ),
+                          const SizedBox(height: 16),
+                          _buildLabel("Yeni Şifre (Tekrar)"),
+                          _buildTextField(
+                            _confirmPasswordCtrl,
+                            true,
+                            checkValid: true,
+                          ),
+
+                          const Spacer(),
+                          SizedBox(
+                            width: double.infinity,
+                            child: CupertinoButton.filled(
+                              borderRadius: BorderRadius.circular(12),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              onPressed: () {
+                                if (_currentPasswordCtrl.text.trim().isEmpty ||
+                                    _newPasswordCtrl.text.trim().isEmpty ||
+                                    _confirmPasswordCtrl.text.trim().isEmpty) {
+                                  _showDialog(
+                                    "Hata",
+                                    "Lütfen tüm alanları doldurunuz.",
+                                  );
+                                  return;
+                                }
+                                if (_newPasswordCtrl.text.trim().length < 6) {
+                                  _showDialog(
+                                    "Hata",
+                                    "Şifre en az 6 karakter olmalı.",
+                                  );
+                                  return;
+                                }
+                                if (_newPasswordCtrl.text.trim() !=
+                                    _confirmPasswordCtrl.text.trim()) {
+                                  _showDialog("Hata", "Şifreler eşleşmiyor.");
+                                  return;
+                                }
+
+                                _changePassword(
+                                  _currentPasswordCtrl.text.trim(),
+                                  _newPasswordCtrl.text.trim(),
+                                );
+                              },
+                              child: const Text("Kaydet"),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
       ),
     );
@@ -184,6 +201,7 @@ class _PasswordChangeScreenState extends State<PasswordChangeScreen> {
           padding: const EdgeInsets.all(14),
           style: const TextStyle(color: AppColors.onSurfaceColor),
           decoration: BoxDecoration(
+            color: AppColors.surfaceColor,
             border: Border.all(color: CupertinoColors.systemGrey4),
             borderRadius: BorderRadius.circular(12),
           ),

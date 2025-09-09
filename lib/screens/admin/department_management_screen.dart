@@ -1,6 +1,7 @@
 import 'package:anket/utils/app_colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 
 class DepartmentManagementScreen extends StatefulWidget {
   const DepartmentManagementScreen({super.key});
@@ -123,58 +124,70 @@ class _DepartmentManagementScreenState
           children: [
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: CupertinoColors.systemGrey3),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
-                      ),
-                      child: Text(
-                        'Yeni Departman Adı',
-                        style: TextStyle(
-                          color: AppColors.onSurfaceColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 0,
+                    right: -5,
+                    child: SvgPicture.asset(
+                      "assets/svgs/filigram2.svg",
+                      width: 200,
                     ),
-                    const SizedBox(height: 12),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: CupertinoColors.systemGrey3),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            'Yeni Departman Adı',
+                            style: TextStyle(
+                              color: AppColors.onSurfaceColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
 
-                    Container(
-                      height: 40,
-                      child: CupertinoTextField(
-                        padding: EdgeInsets.only(left: 14, top: 11),
-                        style: TextStyle(color: AppColors.onSurfaceColor),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: CupertinoColors.systemGrey6,
+                        Container(
+                          height: 40,
+                          child: CupertinoTextField(
+                            padding: EdgeInsets.only(left: 14, top: 11),
+                            style: TextStyle(color: AppColors.onSurfaceColor),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: CupertinoColors.systemGrey6,
+                            ),
+                            controller: _newDeptCtrl,
+                          ),
                         ),
-                        controller: _newDeptCtrl,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      width: double.infinity,
-                      child: CupertinoButton.filled(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                        const SizedBox(height: 16),
+                        Container(
+                          width: double.infinity,
+                          child: CupertinoButton.filled(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            onPressed: _addDepartment,
+                            child: const Text("Ekle"),
+                          ),
                         ),
-                        onPressed: _addDepartment,
-                        child: const Text("Ekle"),
-                      ),
+                        const SizedBox(height: 6),
+                      ],
                     ),
-                    const SizedBox(height: 6),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
