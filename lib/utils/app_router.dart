@@ -13,7 +13,6 @@ import 'package:anket/screens/admin/survey/survey_results_screen.dart';
 import 'package:anket/screens/admin/survey/target_audience_selection_screen.dart';
 import 'package:anket/screens/admin/survey/target_update_screen.dart';
 import 'package:anket/screens/admin/survey/user_responses_screen.dart';
-import 'package:anket/screens/admin/unanswers_list_screen.dart';
 import 'package:anket/screens/auth/first_page.dart';
 import 'package:anket/screens/auth/register_screen.dart';
 import 'package:anket/screens/notifications_Screen.dart';
@@ -109,10 +108,6 @@ class AppRouter {
       case '/editGroup':
         final args = settings.arguments as Map<String, dynamic>?;
         page = EditGroupScreen(groupId: args?["groupId"] ?? '');
-        break;
-      case '/surveyUnanswer':
-        final args = settings.arguments as Map<String, dynamic>?;
-        page = UnanswersListScreen(survey: args?['survey'] ?? '');
         break;
       case '/surveyEdit':
         final args = settings.arguments as Map<String, dynamic>?;
