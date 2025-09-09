@@ -21,6 +21,7 @@ class _SurveysListState extends State<SurveysList> {
   String currentUserUid = '';
   bool isLoading = true;
   List<String> answeredSurveyIds = [];
+  String userDepartment = '';
 
   @override
   void initState() {
@@ -40,6 +41,7 @@ class _SurveysListState extends State<SurveysList> {
             .doc(currentUserUid)
             .get();
     isAdmin = userDoc.data()?['isAdmin'] ?? false;
+    userDepartment = userDoc.data()?['department'] ?? '';
 
     final groupsSnapshot =
         await FirebaseFirestore.instance.collection('groups').get();
@@ -134,27 +136,36 @@ class _SurveysListState extends State<SurveysList> {
                               if (surveyMap['isVisible'] != true) return false;
 
                               final allowedGroups = List<String>.from(
-                                surveyMap['allowedGroups'] ?? [],
+                                surveyMap['visibleToGroups'] ?? [],
                               );
                               final allowedUsers = List<String>.from(
-                                surveyMap['allowedUsers'] ?? [],
+                                surveyMap['visibleToUsers'] ?? [],
+                              );
+                              final allowedDepartments = List<String>.from(
+                                surveyMap['visibleToDepartments'] ?? [],
                               );
 
-                              bool groupAllowed = true;
-                              if (allowedGroups.isNotEmpty) {
-                                groupAllowed = userGroups.any(
-                                  (g) => allowedGroups.contains(g),
-                                );
-                              }
+                              final groupAllowed =
+                                  allowedGroups.isEmpty
+                                      ? false
+                                      : userGroups.any(
+                                        (g) => allowedGroups.contains(g),
+                                      );
+                              final userAllowed =
+                                  allowedUsers.isEmpty
+                                      ? false
+                                      : allowedUsers.contains(currentUserUid);
+                              final departmentAllowed =
+                                  allowedDepartments.isEmpty
+                                      ? false
+                                      : allowedDepartments.contains(
+                                        userDepartment,
+                                      );
 
-                              bool userAllowed = true;
-                              if (allowedUsers.isNotEmpty) {
-                                userAllowed = allowedUsers.contains(
-                                  currentUserUid,
-                                );
-                              }
-
-                              final isAllowed = groupAllowed && userAllowed;
+                              final isAllowed =
+                                  groupAllowed ||
+                                  userAllowed ||
+                                  departmentAllowed;
                               final isAnswered = answeredSurveyIds.contains(
                                 survey.id,
                               );
@@ -318,3 +329,4 @@ class _SurveysListState extends State<SurveysList> {
     );
   }
 }
+omer8aslanfaruk@outlook.com
