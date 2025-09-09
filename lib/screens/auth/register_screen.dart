@@ -119,12 +119,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Text(label),
         ),
         CupertinoTextField(
+          style: TextStyle(color: AppColors.onSurfaceColor),
           controller: controller,
           obscureText:
               (obscureText && (isRepeat ? _obscureRepeat : _obscurePass)),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
           decoration: BoxDecoration(
-            color: CupertinoColors.systemGrey6,
+            color: AppColors.surfaceColor,
             borderRadius: BorderRadius.circular(12),
           ),
           suffix:
@@ -207,104 +208,137 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(middle: Text('Kayıt Ol')),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _registerFormKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SvgPicture.asset('assets/svgs/fuzulev.svg', height: 70),
-                const SizedBox(height: 24),
-                buildInputField(controller: _nameCtrl, label: "Ad Soyad"),
-                const SizedBox(height: 12),
-                buildInputField(controller: _emailRegCtrl, label: "E-posta"),
-                const SizedBox(height: 12),
-                buildInputField(
-                  controller: _passRegCtrl,
-                  label: "Şifre",
-                  obscureText: true,
-                ),
-                const SizedBox(height: 12),
-                buildInputField(
-                  controller: _passRepeatCtrl,
-                  label: "Şifre Tekrar",
-                  obscureText: true,
-                  isRepeat: true,
-                ),
-                const SizedBox(height: 12),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      navigationBar: CupertinoNavigationBar(
+        middle: Text('Kayıt Ol'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          child: Icon(
+            CupertinoIcons.back,
+            color: AppColors.primarySupColor,
+            size: 28,
+          ),
+          onPressed:
+              () => Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/login',
+                (Route<dynamic> route) => false,
+              ),
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: -5,
+            child: SvgPicture.asset("assets/svgs/filigram2.svg", width: 350),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _registerFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 6,
-                        left: 8,
-                        bottom: 6,
-                      ),
-                      child: Text('Departman'),
+                    SvgPicture.asset('assets/svgs/fuzulev.svg', height: 70),
+                    const SizedBox(height: 24),
+                    buildInputField(controller: _nameCtrl, label: "Ad Soyad"),
+                    const SizedBox(height: 12),
+                    buildInputField(
+                      controller: _emailRegCtrl,
+                      label: "E-posta",
                     ),
-                    GestureDetector(
-                      onTap: showDepartmentPicker,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 12,
+                    const SizedBox(height: 12),
+                    buildInputField(
+                      controller: _passRegCtrl,
+                      label: "Şifre",
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 12),
+                    buildInputField(
+                      controller: _passRepeatCtrl,
+                      label: "Şifre Tekrar",
+                      obscureText: true,
+                      isRepeat: true,
+                    ),
+                    const SizedBox(height: 12),
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: 6,
+                            left: 8,
+                            bottom: 6,
+                          ),
+                          child: Text('Departman'),
                         ),
-                        decoration: BoxDecoration(
-                          color: CupertinoColors.systemGrey6,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: CupertinoColors.systemGrey4,
+                        GestureDetector(
+                          onTap: showDepartmentPicker,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 14,
+                              horizontal: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: CupertinoColors.systemGrey4,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  selectedDepartment ?? "Departman Seçin",
+                                  style: TextStyle(
+                                    color: AppColors.onSurfaceColor,
+                                  ),
+                                ),
+                                const Icon(CupertinoIcons.chevron_down),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(selectedDepartment ?? "Departman Seçin"),
-                            const Icon(CupertinoIcons.chevron_down),
-                          ],
-                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CupertinoButton.filled(
+                        onPressed: _loadingRegister ? null : _register,
+                        borderRadius: BorderRadius.circular(12),
+                        child:
+                            _loadingRegister
+                                ? const CupertinoActivityIndicator()
+                                : const Text("Kayıt Ol"),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    CupertinoButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Zaten hesabın var mı? ",
+                            style: TextStyle(color: AppColors.onSurfaceColor),
+                          ),
+                          const Text(
+                            'Giriş Yap',
+                            style: TextStyle(color: AppColors.primaryColor),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: _loadingRegister ? null : _register,
-                    borderRadius: BorderRadius.circular(12),
-                    child:
-                        _loadingRegister
-                            ? const CupertinoActivityIndicator()
-                            : const Text("Kayıt Ol"),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                CupertinoButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Zaten hesabın var mı? ",
-                        style: TextStyle(color: AppColors.onSurfaceColor),
-                      ),
-                      const Text(
-                        'Giriş Yap',
-                        style: TextStyle(color: AppColors.primaryColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

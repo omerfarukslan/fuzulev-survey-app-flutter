@@ -14,7 +14,6 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final String currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
-  // Sayfadan çıkarken tüm okunmamış bildirimleri işaretle
   Future<void> markAllAsSeen(List<DocumentSnapshot> docs) async {
     final batch = FirebaseFirestore.instance.batch();
 
@@ -33,7 +32,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   void dispose() {
-    // Sayfadan çıkarken okunmamış bildirimleri işaretle
     FirebaseFirestore.instance
         .collection("notifications")
         .where("receivers", arrayContains: currentUserId)
@@ -76,13 +74,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   .orderBy("timestamp", descending: true)
                   .snapshots(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData)
+            if (!snapshot.hasData) {
               return const Center(child: CupertinoActivityIndicator());
+            }
 
             final docs = snapshot.data!.docs;
 
-            if (docs.isEmpty)
+            if (docs.isEmpty) {
               return const Center(child: Text("Henüz bildirim yok"));
+            }
 
             return ListView.builder(
               itemCount: docs.length,
@@ -102,7 +102,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     border: Border.all(
                       color:
                           isSeen
-                              ? AppColors.secondaryTextColor
+                              ? CupertinoColors.systemGrey4
                               : AppColors.primarySupColor,
                     ),
                     color: AppColors.surfaceColor,

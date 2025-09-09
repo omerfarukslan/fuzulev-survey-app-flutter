@@ -55,22 +55,38 @@ class _HomeScreenState extends State<HomeScreen> {
         tabBuilder: (context, index) {
           return Stack(
             children: [
-              SvgPicture.asset(
-                'assets/svgs/topbar.svg',
-                width: MediaQuery.of(context).size.width,
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: 150,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.primaryColor.withAlpha(220),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-
+              Positioned(
+                top: 0,
+                right: -5,
+                child: SvgPicture.asset(
+                  "assets/svgs/filigram3.svg",
+                  width: 300,
+                ),
+              ),
               Positioned(
                 top: 60,
                 left: 150,
-                child: Text(
-                  'FUZULEV',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: CupertinoColors.white,
-                    fontSize: 24,
-                  ),
-                ),
+                child: SvgPicture.asset('assets/svgs/Fuzul_Logo_Light.svg'),
               ),
 
               Padding(
@@ -128,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     CupertinoButton(
                       child: const Icon(
-                        CupertinoIcons.bell,
+                        CupertinoIcons.bell_fill,
                         color: AppColors.primarySupColor,
                         size: 28,
                       ),
