@@ -1,6 +1,7 @@
 import 'package:anket/models/survey_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../../utils/app_colors.dart';
 
 class SurveyEditScreen extends StatefulWidget {
@@ -330,154 +331,174 @@ class _SurveyEditScreenState extends State<SurveyEditScreen> {
         child:
             _loading
                 ? const Center(child: CupertinoActivityIndicator())
-                : Padding(
-                  padding: EdgeInsets.only(top: 12),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            const SizedBox(height: 12),
-                            const Text(
-                              "Anket Başlığı",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.onSurfaceColor,
-                                fontSize: 20,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            SizedBox(
-                              height: 55,
-                              child: CupertinoTextField(
-                                style: const TextStyle(
-                                  color: AppColors.onSurfaceColor,
-                                  fontSize: 18,
-                                ),
-                                controller: _titleController,
-                                placeholder: "Anket başlığını girin",
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surfaceColor,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "Açıklama (İsteğe Bağlı)",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.onSurfaceColor,
-                                fontSize: 20,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            CupertinoTextField(
-                              style: TextStyle(
-                                color: AppColors.onSurfaceColor,
-                                fontSize: 18,
-                              ),
-                              onChanged: (val) {
-                                if (val.length > 500) {
-                                  _descController.text = val.substring(0, 500);
-                                  _descController
-                                      .selection = TextSelection.fromPosition(
-                                    TextPosition(
-                                      offset: _descController.text.length,
-                                    ),
-                                  );
-                                }
-                                setState(() {});
-                              },
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceColor,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              controller: _descController,
-                              placeholder: "Anket için açıklama girin",
-                              maxLines: 5,
-                            ),
-                            const SizedBox(height: 4),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                "${_descController.text.length}/500",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            const Text(
-                              "Soru Ekle",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.onSurfaceColor,
-                                fontSize: 20,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                : Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      right: -5,
+                      child: SvgPicture.asset(
+                        "assets/svgs/filigram2.svg",
+                        width: 350,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.all(16),
                               children: [
-                                CupertinoButton(
-                                  color: AppColors.primaryColor,
-                                  child: const Text(
-                                    "Çoktan Seçmeli",
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
-                                    ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  "Anket Başlığı",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurfaceColor,
+                                    fontSize: 20,
                                   ),
-                                  onPressed: () {
-                                    addQuestion('multiple_choice');
-                                  },
                                 ),
-                                CupertinoButton(
-                                  color: AppColors.primarySupColor,
-                                  child: const Text(
-                                    "Açık Uçlu",
-                                    style: TextStyle(
-                                      color: CupertinoColors.white,
+                                const SizedBox(height: 6),
+                                SizedBox(
+                                  height: 55,
+                                  child: CupertinoTextField(
+                                    style: const TextStyle(
+                                      color: AppColors.onSurfaceColor,
+                                      fontSize: 18,
+                                    ),
+                                    controller: _titleController,
+                                    placeholder: "Anket başlığını girin",
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceColor,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  onPressed: () => addQuestion('open_ended'),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "Açıklama (İsteğe Bağlı)",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurfaceColor,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                CupertinoTextField(
+                                  style: TextStyle(
+                                    color: AppColors.onSurfaceColor,
+                                    fontSize: 18,
+                                  ),
+                                  onChanged: (val) {
+                                    if (val.length > 500) {
+                                      _descController.text = val.substring(
+                                        0,
+                                        500,
+                                      );
+                                      _descController.selection =
+                                          TextSelection.fromPosition(
+                                            TextPosition(
+                                              offset:
+                                                  _descController.text.length,
+                                            ),
+                                          );
+                                    }
+                                    setState(() {});
+                                  },
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  controller: _descController,
+                                  placeholder: "Anket için açıklama girin",
+                                  maxLines: 5,
+                                ),
+                                const SizedBox(height: 4),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                    "${_descController.text.length}/500",
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: CupertinoColors.systemGrey,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                const Text(
+                                  "Soru Ekle",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.onSurfaceColor,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    CupertinoButton(
+                                      color: AppColors.primaryColor,
+                                      child: const Text(
+                                        "Çoktan Seçmeli",
+                                        style: TextStyle(
+                                          color: CupertinoColors.white,
+                                        ),
+                                      ),
+                                      onPressed: () {
+                                        addQuestion('multiple_choice');
+                                      },
+                                    ),
+                                    CupertinoButton(
+                                      color: AppColors.primarySupColor,
+                                      child: const Text(
+                                        "Açık Uçlu",
+                                        style: TextStyle(
+                                          color: CupertinoColors.white,
+                                        ),
+                                      ),
+                                      onPressed:
+                                          () => addQuestion('open_ended'),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+
+                                ...questions.asMap().entries.map(
+                                  (entry) => _buildQuestionCard(
+                                    entry.value,
+                                    entry.key,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 20),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                  child: CupertinoButton(
+                                    color: CupertinoColors.white,
+                                    onPressed: goToTargetUpdateScreen,
+                                    child: const Text(
+                                      "Hedef Kitleyi Seçin",
+                                      style: TextStyle(
+                                        color: AppColors.primaryColor,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
-
-                            ...questions.asMap().entries.map(
-                              (entry) =>
-                                  _buildQuestionCard(entry.value, entry.key),
-                            ),
-
-                            const SizedBox(height: 20),
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.primaryColor,
-                                ),
-                              ),
-                              child: CupertinoButton(
-                                color: CupertinoColors.white,
-                                onPressed: goToTargetUpdateScreen,
-                                child: const Text(
-                                  "Hedef Kitleyi Seçin",
-                                  style: TextStyle(
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
       ),
     );

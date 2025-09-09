@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../../utils/app_colors.dart';
 
 class GroupDetailScreen extends StatefulWidget {
@@ -129,57 +130,72 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                               );
                             }
 
-                            return ListView.builder(
-                              itemCount: users.length,
-                              itemBuilder: (context, index) {
-                                final user = users[index];
-                                final name = user['name'] ?? "";
-                                final department = user['department'] ?? "";
+                            return Stack(
+                              children: [
+                                Positioned(
+                                  top: 0,
+                                  right: -5,
+                                  child: SvgPicture.asset(
+                                    "assets/svgs/filigram2.svg",
+                                    width: 350,
+                                  ),
+                                ),
+                                ListView.builder(
+                                  itemCount: users.length,
+                                  itemBuilder: (context, index) {
+                                    final user = users[index];
+                                    final name = user['name'] ?? "";
+                                    final department = user['department'] ?? "";
 
-                                return Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: CupertinoColors.systemGrey6,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: CupertinoColors.systemGrey3,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        CupertinoIcons.person,
-                                        color: AppColors.primarySupColor,
+                                    return Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        vertical: 6,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: CupertinoColors.systemGrey6,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: CupertinoColors.systemGrey3,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            name,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              color: AppColors.onSurfaceColor,
-                                            ),
+                                          const Icon(
+                                            CupertinoIcons.person,
+                                            color: AppColors.primarySupColor,
                                           ),
-                                          Text(
-                                            department,
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              color: CupertinoColors.systemGrey,
-                                            ),
+                                          const SizedBox(width: 12),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                name,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color:
+                                                      AppColors.onSurfaceColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                department,
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  color:
+                                                      CupertinoColors
+                                                          .systemGrey,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                    );
+                                  },
+                                ),
+                              ],
                             );
                           },
                         ),

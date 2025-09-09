@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart' show Icons;
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/firestore_service.dart';
@@ -185,118 +186,131 @@ class _SurveysListState extends State<SurveysList> {
                       );
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      itemCount: surveys.length,
-                      itemBuilder: (context, index) {
-                        final survey = surveys[index];
-                        final surveyMap = survey.toMap();
-                        final title = surveyMap['title'] ?? 'Adsız Anket';
-
-                        final targetCount = surveyMap['targetCount'] ?? 0;
-                        final answeredCount = surveyMap['answeredCount'] ?? 0;
-                        final description = surveyMap['description'] ?? '';
-
-                        final createdAtField = surveyMap['createdAt'];
-                        final createdAt =
-                            (createdAtField is Timestamp)
-                                ? createdAtField.toDate()
-                                : null;
-
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 18,
+                    return Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          right: -5,
+                          child: SvgPicture.asset(
+                            "assets/svgs/filigram2.svg",
+                            width: 350,
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.surfaceColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: CupertinoColors.systemGrey.withOpacity(
-                                  0.3,
-                                ),
-                                blurRadius: 6,
-                                offset: const Offset(0, 3),
+                        ),
+                        ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          itemCount: surveys.length,
+                          itemBuilder: (context, index) {
+                            final survey = surveys[index];
+                            final surveyMap = survey.toMap();
+                            final title = surveyMap['title'] ?? 'Adsız Anket';
+
+                            final targetCount = surveyMap['targetCount'] ?? 0;
+                            final answeredCount =
+                                surveyMap['answeredCount'] ?? 0;
+                            final description = surveyMap['description'] ?? '';
+
+                            final createdAtField = surveyMap['createdAt'];
+                            final createdAt =
+                                (createdAtField is Timestamp)
+                                    ? createdAtField.toDate()
+                                    : null;
+
+                            return Container(
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 8,
+                                horizontal: 18,
                               ),
-                            ],
-                          ),
-                          child: CupertinoListTile(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            title: Text(
-                              title,
-                              style: const TextStyle(
-                                color: AppColors.onSurfaceColor,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 20,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: 6),
-                                Text(
-                                  "Hedeflenen: $targetCount kişi • Cevaplayan: $answeredCount kişi",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.secondaryTextColor,
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceColor,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: CupertinoColors.systemGrey
+                                        .withOpacity(0.3),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
                                   ),
+                                ],
+                              ),
+                              child: CupertinoListTile(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
-                                SizedBox(height: 4),
-                                Container(
-                                  child: Text(
-                                    description,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.secondaryTextColor,
-                                    ),
-                                    maxLines: 3,
+                                title: Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: AppColors.onSurfaceColor,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 20,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (createdAt != null)
-                                  Text(
-                                    _timeAgo(createdAt),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: CupertinoColors.systemGrey,
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(height: 6),
+                                    Text(
+                                      "Hedeflenen: $targetCount kişi • Cevaplayan: $answeredCount kişi",
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
                                     ),
-                                  ),
-                                const SizedBox(width: 8),
-                                const Icon(
-                                  CupertinoIcons.right_chevron,
-                                  color: AppColors.primaryColor,
-                                  size: 20,
+                                    SizedBox(height: 4),
+                                    Container(
+                                      child: Text(
+                                        description,
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            onTap: () {
-                              if (widget.pageName == 'Anket Listesi') {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/surveyQuestions',
-                                  arguments: {'surveyId': survey.id},
-                                );
-                              } else if (widget.pageName == 'Anket Düzenle') {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/surveyEdit',
-                                  arguments: {'surveyId': survey.id},
-                                );
-                              }
-                            },
-                          ),
-                        );
-                      },
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (createdAt != null)
+                                      Text(
+                                        _timeAgo(createdAt),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: CupertinoColors.systemGrey,
+                                        ),
+                                      ),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      CupertinoIcons.right_chevron,
+                                      color: AppColors.primaryColor,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                                onTap: () {
+                                  if (widget.pageName == 'Anket Listesi') {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/surveyQuestions',
+                                      arguments: {'surveyId': survey.id},
+                                    );
+                                  } else if (widget.pageName ==
+                                      'Anket Düzenle') {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/surveyEdit',
+                                      arguments: {'surveyId': survey.id},
+                                    );
+                                  }
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),

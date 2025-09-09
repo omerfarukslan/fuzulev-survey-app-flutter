@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 import '../../../utils/app_colors.dart';
 
@@ -87,97 +88,109 @@ class _GroupListScreenState extends State<GroupListScreen> {
 
                 final groups = snapshot.data!.docs;
 
-                return ListView.separated(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 16,
-                  ),
-                  itemCount: groups.length,
-                  separatorBuilder:
-                      (context, index) => const Divider(
-                        height: 1,
-                        thickness: 0.3,
-                        indent: 16,
-                        endIndent: 16,
-                        color: Color(0xFF123F8C),
+                return Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      right: -5,
+                      child: SvgPicture.asset(
+                        "assets/svgs/filigram2.svg",
+                        width: 350,
                       ),
-                  itemBuilder: (context, index) {
-                    final group = groups[index];
-                    final groupName = group['name'];
+                    ),
+                    ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 16,
+                      ),
+                      itemCount: groups.length,
+                      separatorBuilder:
+                          (context, index) => const Divider(
+                            height: 1,
+                            thickness: 0.3,
+                            indent: 16,
+                            endIndent: 16,
+                            color: Color(0xFF123F8C),
+                          ),
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        final groupName = group['name'];
 
-                    return Column(
-                      children: [
-                        CupertinoButton(
-                          padding: EdgeInsets.zero,
-                          onPressed: () {
-                            if (widget.pageName == 'Grup Listesi') {
-                              Navigator.pushNamed(
-                                context,
-                                '/groupDetail',
-                                arguments: {'groupId': group.id},
-                              );
-                            } else if (widget.pageName == 'Grup Güncelleme') {
-                              Navigator.pushNamed(
-                                context,
-                                '/editGroup',
-                                arguments: {'groupId': group.id},
-                              );
-                            }
-                          },
-                          child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: CupertinoColors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: CupertinoColors.systemGrey.withOpacity(
-                                    0.1,
+                        return Column(
+                          children: [
+                            CupertinoButton(
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                if (widget.pageName == 'Grup Listesi') {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/groupDetail',
+                                    arguments: {'groupId': group.id},
+                                  );
+                                } else if (widget.pageName ==
+                                    'Grup Güncelleme') {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/editGroup',
+                                    arguments: {'groupId': group.id},
+                                  );
+                                }
+                              },
+                              child: Container(
+                                width: MediaQuery.of(context).size.width,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: CupertinoColors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: CupertinoColors.systemGrey
+                                          .withOpacity(0.1),
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: CupertinoColors.systemGrey3,
                                   ),
-                                  blurRadius: 3,
-                                  offset: const Offset(0, 4),
                                 ),
-                              ],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: CupertinoColors.systemGrey3,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                  horizontal: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      CupertinoIcons.person_2_fill,
+                                      color: AppColors.primarySupColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        groupName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 18,
+                                          color: AppColors.onSurfaceColor,
+                                        ),
+                                      ),
+                                    ),
+                                    const Icon(
+                                      CupertinoIcons.right_chevron,
+                                      size: 18,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.person_2_fill,
-                                  color: AppColors.primarySupColor,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    groupName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18,
-                                      color: AppColors.onSurfaceColor,
-                                    ),
-                                  ),
-                                ),
-                                const Icon(
-                                  CupertinoIcons.right_chevron,
-                                  size: 18,
-                                  color: AppColors.primaryColor,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                      ],
-                    );
-                  },
+                            SizedBox(height: 12),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 );
               },
             ),

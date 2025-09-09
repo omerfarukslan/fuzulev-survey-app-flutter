@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../../utils/app_colors.dart';
 
 class TargetUpdateScreen extends StatefulWidget {
@@ -395,53 +396,62 @@ class _TargetUpdateScreenState extends State<TargetUpdateScreen> {
           return const Center(child: Text("Hiç departman bulunamadı"));
         }
 
-        return ListView(
-          children:
-              departments.map((dept) {
-                final isSelected = selectedDepartments.contains(dept);
-                return Card(
-                  color: CupertinoColors.white,
-                  margin: const EdgeInsets.symmetric(
-                    vertical: 4,
-                    horizontal: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color:
-                            isSelected
-                                ? AppColors.primarySupColor
-                                : CupertinoColors.systemGrey4,
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              right: -5,
+              child: SvgPicture.asset("assets/svgs/filigram2.svg", width: 350),
+            ),
+            ListView(
+              children:
+                  departments.map((dept) {
+                    final isSelected = selectedDepartments.contains(dept);
+                    return Card(
+                      color: CupertinoColors.white,
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                isSelected
+                                    ? AppColors.primarySupColor
+                                    : CupertinoColors.systemGrey4,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
 
-                      title: Text(
-                        dept,
-                        style: TextStyle(
-                          color: AppColors.onSurfaceColor,
-                          fontSize: 20,
+                          title: Text(
+                            dept,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceColor,
+                              fontSize: 20,
+                            ),
+                          ),
+                          value: isSelected,
+                          onChanged: (val) {
+                            setState(() {
+                              if (val == true) {
+                                selectedDepartments.add(dept);
+                              } else {
+                                selectedDepartments.remove(dept);
+                              }
+                            });
+                          },
                         ),
                       ),
-                      value: isSelected,
-                      onChanged: (val) {
-                        setState(() {
-                          if (val == true) {
-                            selectedDepartments.add(dept);
-                          } else {
-                            selectedDepartments.remove(dept);
-                          }
-                        });
-                      },
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+            ),
+          ],
         );
       },
     );
