@@ -12,7 +12,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final Color mainColor = const Color(0xFF123F8C);
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _loadingLogin = false;
@@ -76,6 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
         StatefulBuilder(
           builder: (context, setStateField) {
             return CupertinoTextField(
+              style: TextStyle(color: AppColors.onSurfaceColor),
               controller: controller,
               obscureText: obscureText && _obscurePass,
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           _obscurePass
                               ? CupertinoIcons.eye_slash
                               : CupertinoIcons.eye,
-                          color: mainColor,
+                          color: AppColors.primaryColor,
                         ),
                       ),
                       onPressed:
@@ -145,57 +145,67 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
         ),
       ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _loginFormKey,
-            child: Column(
-              children: [
-                SvgPicture.asset('assets/svgs/fuzulev.svg', height: 70),
-                const SizedBox(height: 24),
-                buildInputField(controller: _emailCtrl, label: "Email"),
-                const SizedBox(height: 12),
-                buildInputField(
-                  controller: _passCtrl,
-                  label: "Şifre",
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: CupertinoButton.filled(
-                    onPressed: _loadingLogin ? null : _login,
-                    borderRadius: BorderRadius.circular(12),
-                    child:
-                        _loadingLogin
-                            ? const CupertinoActivityIndicator(
-                              color: CupertinoColors.white,
-                            )
-                            : const Text("Giriş Yap"),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                CupertinoButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Hesabınız yok mu? ",
-                        style: TextStyle(color: AppColors.onSurfaceColor),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: -5,
+            child: SvgPicture.asset("assets/svgs/filigram2.svg", width: 350),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(40),
+              child: Form(
+                key: _loginFormKey,
+                child: Column(
+                  children: [
+                    SvgPicture.asset('assets/svgs/fuzulev.svg', height: 70),
+                    const SizedBox(height: 44),
+                    buildInputField(controller: _emailCtrl, label: "Email"),
+                    const SizedBox(height: 16),
+                    buildInputField(
+                      controller: _passCtrl,
+                      label: "Şifre",
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      child: CupertinoButton.filled(
+                        onPressed: _loadingLogin ? null : _login,
+                        borderRadius: BorderRadius.circular(12),
+                        child:
+                            _loadingLogin
+                                ? const CupertinoActivityIndicator(
+                                  color: CupertinoColors.white,
+                                )
+                                : const Text("Giriş Yap"),
                       ),
-                      const Text(
-                        'Kayıt Olun',
-                        style: TextStyle(color: AppColors.primaryColor),
+                    ),
+                    const SizedBox(height: 12),
+                    CupertinoButton(
+                      onPressed:
+                          () => Navigator.pushNamed(context, '/register'),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Hesabınız yok mu? ",
+                            style: TextStyle(color: AppColors.onSurfaceColor),
+                          ),
+                          const Text(
+                            'Kayıt Olun',
+                            style: TextStyle(color: AppColors.primaryColor),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
